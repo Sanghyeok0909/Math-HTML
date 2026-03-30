@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>공업수학 — 미분방정식 모델링</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Playfair+Display:ital,wght@0,700;1,700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
+<style>
+  :root {
+    --bg: #FAF8F5;
+    --bg-card: #FFFFFF;
+    --text: #1A1A1A;
+    --text-sub: #5A5A5A;
+    --accent-salt: #2B7A9E;
+    --accent-salt-light: #D6EEF6;
+    --accent-temp: #C94D3A;
+    --accent-temp-light: #FDEAE7;
+    --border: #E8E4DF;
+    --shadow: 0 4px 24px rgba(0,0,0,0.06);
+    --radius: 16px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-weight: 400;
+    line-height: 1.8;
+    overflow-x: hidden;
+  }
+
+  /* Hero */
+  .hero {
+    text-align: center;
+    padding: 80px 24px 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -120px; left: 50%; transform: translateX(-50%);
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(43,122,158,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--accent-salt), var(--accent-temp));
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 6px 18px;
+    border-radius: 100px;
+    margin-bottom: 24px;
+    text-transform: uppercase;
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(32px, 5vw, 56px);
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  .hero p {
+    font-size: 17px;
+    color: var(--text-sub);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* Container */
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* Section */
+  .section {
+    margin-bottom: 80px;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 36px;
+  }
+  .section-icon {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+  }
+  .section-icon.salt { background: var(--accent-salt-light); }
+  .section-icon.temp { background: var(--accent-temp-light); }
+  .section-title {
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+  }
+
+  /* Card */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 36px;
+    margin-bottom: 28px;
+    box-shadow: var(--shadow);
+  }
+  .card h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card p, .card li {
+    font-size: 15.5px;
+    color: var(--text-sub);
+    margin-bottom: 12px;
+  }
+  .card ul {
+    padding-left: 20px;
+    list-style: none;
+  }
+  .card ul li::before {
+    content: '▸';
+    color: var(--accent-salt);
+    font-weight: 700;
+    margin-right: 8px;
+  }
+  .card.temp-card ul li::before {
+    color: var(--accent-temp);
+  }
+
+  /* Math */
+  .math-block {
+    background: #F5F3F0;
+    border-left: 4px solid var(--accent-salt);
+    border-radius: 0 12px 12px 0;
+    padding: 16px 24px;
+    margin: 20px 0;
+    overflow-x: auto;
+    line-height: 2;
+    color: var(--text);
+  }
+  .math-block .katex-display {
+    margin: 4px 0 !important;
+  }
+  .math-block.temp {
+    border-left-color: var(--accent-temp);
+  }
+  .math-block .label {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-sub);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  /* ─── Animation Canvases ─── */
+  .anim-wrapper {
+    position: relative;
+    width: 100%;
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin: 24px 0;
+    border: 1px solid var(--border);
+    background: #fff;
+  }
+  canvas { display: block; width: 100%; }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    padding: 16px 20px;
+    background: #F9F8F6;
+    border-top: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .controls label {
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .controls input[type=range] {
+    width: 120px;
+    accent-color: var(--accent-salt);
+  }
+  .controls .val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px 8px;
+    min-width: 50px;
+    text-align: center;
+  }
+  .controls.temp-ctrl input[type=range] {
+    accent-color: var(--accent-temp);
+  }
+
+  /* Step markers */
+  .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--accent-salt);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .step-num.temp { background: var(--accent-temp); }
+
+  /* Highlight */
+  .hl { font-weight: 700; }
+  .hl-salt { color: var(--accent-salt); }
+  .hl-temp { color: var(--accent-temp); }
+
+  /* Divider */
+  .divider {
+    width: 60px; height: 4px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--accent-salt), var(--accent-temp));
+    margin: 60px auto;
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 40px 24px 60px;
+    font-size: 13px;
+    color: #AAA;
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .card { padding: 24px; }
+    .hero { padding: 60px 16px 40px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<div class="hero">
+  <div class="hero-badge">Engineering Mathematics</div>
+  <h1>미분방정식 모델링</h1>
+  <p>1차 선형 미분방정식의 대표적 응용 — <strong>소금물 혼합</strong>과 <strong>뉴턴의 냉각 법칙</strong>을 애니메이션과 함께 학습합니다.</p>
+</div>
+
+<div class="container">
+
+<!-- ══════════════════════════════════════ -->
+<!--         PART 1 : 소금물 혼합 모델        -->
+<!-- ══════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-icon salt">🧂</div>
+    <div class="section-title">소금물 혼합 탱크 모델</div>
+  </div>
+
+  <!-- 상황 설명 -->
+  <div class="card">
+    <h3><span class="step-num">1</span> 물리적 상황</h3>
+    <p>아래 그림과 같이 <span class="hl hl-salt">잘 섞이는 탱크</span>가 있습니다. 탱크에는 초기에 일정량의 물(또는 소금물)이 들어 있고, 한쪽 파이프로 <span class="hl">농도가 일정한 소금물이 유입</span>되며, 다른 쪽 파이프로 잘 섞인 용액이 <span class="hl">동일한 속도로 유출</span>됩니다.</p>
+    <p>이때 <strong>시간 t에서 탱크 안의 소금 양 Q(t)</strong>가 어떻게 변하는지를 미분방정식으로 모델링합니다.</p>
+  </div>
+
+  <!-- ─── 소금물 애니메이션 ─── -->
+  <div class="anim-wrapper">
+    <canvas id="saltCanvas" height="420"></canvas>
+    <div class="controls">
+      <label>유입 농도 c<sub>in</sub>
+        <input type="range" id="cIn" min="0" max="100" value="30">
+        <span class="val" id="cInVal">30 g/L</span>
+      </label>
+      <label>유량 F
+        <input type="range" id="flowRate" min="1" max="20" value="6">
+        <span class="val" id="flowVal">6 L/min</span>
+      </label>
+      <label>탱크 부피 V
+        <input type="range" id="tankVol" min="50" max="500" value="200" step="10">
+        <span class="val" id="volVal">200 L</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- 변수 정의 -->
+  <div class="card">
+    <h3><span class="step-num">2</span> 변수 정의</h3>
+    <ul>
+      <li>$Q(t)$ : 시각 $t$에서 탱크 안 소금의 양 (g)</li>
+      <li>$V$ : 탱크 내 용액의 부피 (L) — 유입량 = 유출량이면 일정</li>
+      <li>$F$ : 유입 · 유출 유량 (L/min)</li>
+      <li>$c_{\text{in}}$ : 유입 용액의 소금 농도 (g/L)</li>
+      <li>$\dfrac{Q(t)}{V}$ : 탱크 내 현재 농도 (g/L)</li>
+    </ul>
+  </div>
+
+  <!-- 미분방정식 유도 -->
+  <div class="card">
+    <h3><span class="step-num">3</span> 미분방정식 유도</h3>
+    <p>탱크 안 소금의 변화율 = (들어오는 속도) − (나가는 속도)</p>
+    <div class="math-block">
+      <span class="label">기본 원리</span>
+      $$\frac{dQ}{dt} = (\text{유입 속도}) - (\text{유출 속도})$$
+    </div>
+    <p>유입 속도 = $c_{\text{in}} \times F$ (g/min), 유출 속도 = $\dfrac{Q}{V} \times F$ (g/min) 이므로</p>
+    <div class="math-block">
+      <span class="label">미분방정식</span>
+      $$\frac{dQ}{dt} = c_{\text{in}} \cdot F - \frac{F}{V} \cdot Q$$
+    </div>
+    <p>이것은 <span class="hl hl-salt">1차 선형 ODE</span>입니다. 정리하면:</p>
+    <div class="math-block">
+      <span class="label">표준형</span>
+      $$\frac{dQ}{dt} + \frac{F}{V}\,Q = c_{\text{in}} \cdot F$$
+    </div>
+  </div>
+
+  <!-- 풀이 -->
+  <div class="card">
+    <h3><span class="step-num">4</span> 풀이 (적분인자법)</h3>
+    <p>적분인자 $\mu(t) = e^{(F/V)\,t}$ 를 양변에 곱하면</p>
+    <div class="math-block">
+      <span class="label">일반해</span>
+      $$Q(t) = c_{\text{in}} \cdot V + \left(Q_0 - c_{\text{in}} \cdot V\right) e^{-\frac{F}{V}\,t}$$
+    </div>
+    <p>여기서 $Q_0 = Q(0)$은 초기 소금의 양입니다.</p>
+    <p>$t \to \infty$ 이면 $Q(t) \to$ <span class="hl hl-salt">$c_{\text{in}} \cdot V$</span>, 즉 탱크 내 농도가 유입 농도와 같아지는 <strong>정상상태</strong>에 도달합니다.</p>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ══════════════════════════════════════ -->
+<!--       PART 2 : 뉴턴 냉각 법칙          -->
+<!-- ══════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-icon temp">🌡️</div>
+    <div class="section-title">방 온도 모델 — 뉴턴의 냉각 법칙</div>
+  </div>
+
+  <div class="card temp-card">
+    <h3><span class="step-num temp">1</span> 물리적 상황</h3>
+    <p>외부 온도(T<sub>env</sub>)가 일정한 환경에서, 방(또는 물체)의 온도 T(t)는 <span class="hl hl-temp">주변과의 온도 차이에 비례</span>하여 변합니다. 온도 차이가 클수록 열 전달이 빨라지고, 차이가 줄어들수록 느려집니다.</p>
+    <p>아래 애니메이션에서 <strong>열의 이동 방향</strong>과 <strong>속도</strong>를 확인하세요.</p>
+  </div>
+
+  <!-- ─── 방 온도 애니메이션 ─── -->
+  <div class="anim-wrapper">
+    <canvas id="tempCanvas" height="420"></canvas>
+    <div class="controls temp-ctrl">
+      <label>초기 방 온도 T₀
+        <input type="range" id="initTemp" min="0" max="50" value="40">
+        <span class="val" id="initTempVal">40 °C</span>
+      </label>
+      <label>외부 온도 T<sub>env</sub>
+        <input type="range" id="envTemp" min="-10" max="40" value="5">
+        <span class="val" id="envTempVal">5 °C</span>
+      </label>
+      <label>냉각 상수 k
+        <input type="range" id="kVal" min="1" max="30" value="10">
+        <span class="val" id="kValDisp">0.10</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- 변수 정의 -->
+  <div class="card temp-card">
+    <h3><span class="step-num temp">2</span> 변수 정의</h3>
+    <ul>
+      <li>$T(t)$ : 시각 $t$에서 방(물체)의 온도 (°C)</li>
+      <li>$T_{\text{env}}$ : 주변(외부) 환경 온도 (°C) — 상수</li>
+      <li>$k$ : 냉각(또는 가열) 상수 ($k > 0$)</li>
+      <li>$T_0$ : 초기 온도 $T(0)$</li>
+    </ul>
+  </div>
+
+  <!-- 미분방정식 유도 -->
+  <div class="card temp-card">
+    <h3><span class="step-num temp">3</span> 미분방정식 유도</h3>
+    <p>뉴턴의 냉각 법칙: 온도 변화율은 현재 온도와 주변 온도의 차이에 비례합니다.</p>
+    <div class="math-block temp">
+      <span class="label">뉴턴의 냉각 법칙</span>
+      $$\frac{dT}{dt} = -k\left(T - T_{\text{env}}\right)$$
+    </div>
+    <p>$T > T_{\text{env}}$이면 $\dfrac{dT}{dt} < 0$ (냉각), $T < T_{\text{env}}$이면 $\dfrac{dT}{dt} > 0$ (가열)으로, 항상 주변 온도를 향해 변화합니다.</p>
+  </div>
+
+  <!-- 풀이 -->
+  <div class="card temp-card">
+    <h3><span class="step-num temp">4</span> 풀이</h3>
+    <p>변수분리법을 적용하면:</p>
+    <div class="math-block temp">
+      <span class="label">일반해</span>
+      $$T(t) = T_{\text{env}} + \left(T_0 - T_{\text{env}}\right) e^{-kt}$$
+    </div>
+    <p>$t \to \infty$ 이면 $T(t) \to$ <span class="hl hl-temp">$T_{\text{env}}$</span>로 수렴합니다. 이것이 바로 <strong>열평형 상태</strong>입니다.</p>
+    <p>지수함수의 특성상, 초기에 빠르게 변하다가 점차 느려지는 모습을 보입니다.</p>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<footer>공업수학 · 1차 미분방정식 응용 모델링 학습 자료</footer>
+
+<!-- ═══════════════ SCRIPTS ═══════════════ -->
+<script>
+// ─── Utility ───
+const $ = id => document.getElementById(id);
+const lerp = (a,b,t) => a + (b - a) * t;
+
+// ══════════════════════════════════════════
+//  SALT TANK ANIMATION
+// ══════════════════════════════════════════
+(function(){
+  const cvs = $('saltCanvas');
+  const ctx = cvs.getContext('2d');
+  let W, H, dpr;
+
+  function resize(){
+    dpr = window.devicePixelRatio || 1;
+    const rect = cvs.parentElement.getBoundingClientRect();
+    W = rect.width; H = 420;
+    cvs.width = W * dpr; cvs.height = H * dpr;
+    cvs.style.height = H + 'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // params
+  let cIn = 30, F = 6, V = 200;
+  $('cIn').oninput = e => { cIn = +e.target.value; $('cInVal').textContent = cIn + ' g/L'; };
+  $('flowRate').oninput = e => { F = +e.target.value; $('flowVal').textContent = F + ' L/min'; };
+  $('tankVol').oninput = e => { V = +e.target.value; $('volVal').textContent = V + ' L'; };
+
+  // ─── Pipe geometry constants ───
+  const PIPE_W = 22;        // pipe inner width
+  const PIPE_STROKE = 2.5;
+
+  // In-pipe: horizontal from left, turns down into tank
+  // Path: left edge → corner → down into tank top
+  const IN_H_Y  = 60;                  // horizontal center Y
+  const IN_H_X0 = 40;                  // start X
+  const IN_H_X1 = 245;                 // corner X (outer edge of vertical)
+  const IN_V_X  = IN_H_X1;             // vertical center X
+  const IN_V_Y1 = 135;                 // bottom of vertical pipe (enters tank)
+
+  // Out-pipe: from tank right wall → horizontal to right edge
+  const OUT_H_Y  = 310;
+  const OUT_V_Y0 = 280;                // exits tank wall
+
+  // Tank geometry
+  const TANK_X = 210, TANK_Y = 130, TANK_H = 240;
+  function tankW(){ return W - 420; }
+  function tankRight(){ return TANK_X + tankW(); }
+
+  const OUT_H_X1_fn = () => W - 40;
+
+  // ─── Particle class using path progress ───
+  class FlowParticle {
+    constructor(type){
+      this.type = type;
+      this.progress = Math.random(); // 0..1 along path
+      this.speed = 0.004 + Math.random() * 0.004;
+      this.offset = (Math.random() - 0.5) * (PIPE_W - 6); // random position inside pipe width
+    }
+    update(){
+      const spd = F / 6;
+      this.progress += this.speed * spd;
+      if(this.progress > 1){
+        this.progress -= 1;
+        this.offset = (Math.random() - 0.5) * (PIPE_W - 6);
+      }
+    }
+    getPos(){
+      if(this.type === 'in'){
+        // Path: horizontal (0..0.6) → vertical down (0.6..1.0)
+        const horizLen = IN_H_X1 - IN_H_X0;
+        const vertLen  = IN_V_Y1 - (IN_H_Y);
+        const totalLen = horizLen + vertLen;
+        const horizFrac = horizLen / totalLen;
+
+        if(this.progress < horizFrac){
+          const t = this.progress / horizFrac;
+          return { x: lerp(IN_H_X0, IN_H_X1, t), y: IN_H_Y + this.offset };
+        } else {
+          const t = (this.progress - horizFrac) / (1 - horizFrac);
+          return { x: IN_V_X + this.offset, y: lerp(IN_H_Y, IN_V_Y1, t) };
+        }
+      } else {
+        // Out path: horizontal from tank wall to right
+        const startX = tankRight();
+        const endX = OUT_H_X1_fn();
+        return {
+          x: lerp(startX, endX, this.progress),
+          y: OUT_H_Y + this.offset
+        };
+      }
+    }
+  }
+
+  // Tank swirl particles
+  class TankParticle {
+    constructor(){
+      this.reset();
+    }
+    reset(){
+      const tw = tankW();
+      this.x = TANK_X + 15 + Math.random() * (tw - 30);
+      this.y = TANK_Y + 30 + Math.random() * (TANK_H - 50);
+      this.vx = (Math.random() - 0.5) * 0.5;
+      this.vy = (Math.random() - 0.5) * 0.5;
+    }
+    update(){
+      this.x += this.vx;
+      this.y += this.vy;
+      const tw = tankW();
+      if(this.x < TANK_X + 10 || this.x > TANK_X + tw - 10) this.vx *= -1;
+      if(this.y < TANK_Y + 25 || this.y > TANK_Y + TANK_H - 10) this.vy *= -1;
+    }
+  }
+
+  const inParticles  = Array.from({length: 20}, () => new FlowParticle('in'));
+  const outParticles = Array.from({length: 20}, () => new FlowParticle('out'));
+  const tankParticles = Array.from({length: 45}, () => new TankParticle());
+
+  let time = 0;
+
+  function drawPipe(path, color){
+    // path = array of {x,y} waypoints
+    // Draw as thick rounded stroke (fill between two offset paths)
+    ctx.strokeStyle = color || '#999';
+    ctx.lineWidth = PIPE_STROKE;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    // outer wall 1
+    ctx.beginPath();
+    for(let i = 0; i < path.length; i++){
+      const p = path[i];
+      // compute normal
+      let nx = 0, ny = 0;
+      if(i < path.length - 1){
+        const dx = path[i+1].x - p.x;
+        const dy = path[i+1].y - p.y;
+        const len = Math.sqrt(dx*dx+dy*dy) || 1;
+        nx = -dy/len; ny = dx/len;
+      } else if(i > 0){
+        const dx = p.x - path[i-1].x;
+        const dy = p.y - path[i-1].y;
+        const len = Math.sqrt(dx*dx+dy*dy) || 1;
+        nx = -dy/len; ny = dx/len;
+      }
+      const half = PIPE_W / 2;
+      if(i === 0) ctx.moveTo(p.x + nx*half, p.y + ny*half);
+      else ctx.lineTo(p.x + nx*half, p.y + ny*half);
+    }
+    ctx.stroke();
+
+    // outer wall 2
+    ctx.beginPath();
+    for(let i = 0; i < path.length; i++){
+      const p = path[i];
+      let nx = 0, ny = 0;
+      if(i < path.length - 1){
+        const dx = path[i+1].x - p.x;
+        const dy = path[i+1].y - p.y;
+        const len = Math.sqrt(dx*dx+dy*dy) || 1;
+        nx = -dy/len; ny = dx/len;
+      } else if(i > 0){
+        const dx = p.x - path[i-1].x;
+        const dy = p.y - path[i-1].y;
+        const len = Math.sqrt(dx*dx+dy*dy) || 1;
+        nx = -dy/len; ny = dx/len;
+      }
+      const half = PIPE_W / 2;
+      if(i === 0) ctx.moveTo(p.x - nx*half, p.y - ny*half);
+      else ctx.lineTo(p.x - nx*half, p.y - ny*half);
+    }
+    ctx.stroke();
+  }
+
+  function drawInPipe(){
+    const half = PIPE_W / 2;
+    ctx.strokeStyle = '#888';
+    ctx.lineWidth = PIPE_STROKE;
+    ctx.lineCap = 'butt';
+    ctx.lineJoin = 'miter';
+
+    // Top wall: horizontal from left, then right-angle down (outer corner)
+    ctx.beginPath();
+    ctx.moveTo(IN_H_X0, IN_H_Y - half);
+    ctx.lineTo(IN_V_X + half, IN_H_Y - half);      // horizontal top → outer corner
+    ctx.lineTo(IN_V_X + half, IN_V_Y1);              // down outer wall
+    ctx.stroke();
+
+    // Bottom wall: horizontal from left, inner corner, then inner wall down
+    ctx.beginPath();
+    ctx.moveTo(IN_H_X0, IN_H_Y + half);
+    ctx.lineTo(IN_V_X - half, IN_H_Y + half);        // horizontal bottom → inner corner
+    ctx.lineTo(IN_V_X - half, IN_V_Y1);              // down inner wall
+    ctx.stroke();
+
+    // Fill pipe interior with light color to make particles visible
+    ctx.fillStyle = 'rgba(43,122,158,0.06)';
+    ctx.beginPath();
+    ctx.moveTo(IN_H_X0, IN_H_Y - half);
+    ctx.lineTo(IN_V_X + half, IN_H_Y - half);
+    ctx.lineTo(IN_V_X + half, IN_V_Y1);
+    ctx.lineTo(IN_V_X - half, IN_V_Y1);
+    ctx.lineTo(IN_V_X - half, IN_H_Y + half);
+    ctx.lineTo(IN_H_X0, IN_H_Y + half);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function drawOutPipe(){
+    const half = PIPE_W / 2;
+    const startX = tankRight();
+    const endX = OUT_H_X1_fn();
+
+    ctx.strokeStyle = '#888';
+    ctx.lineWidth = PIPE_STROKE;
+    ctx.lineCap = 'butt';
+
+    // Top wall
+    ctx.beginPath();
+    ctx.moveTo(startX, OUT_H_Y - half);
+    ctx.lineTo(endX, OUT_H_Y - half);
+    ctx.stroke();
+
+    // Bottom wall
+    ctx.beginPath();
+    ctx.moveTo(startX, OUT_H_Y + half);
+    ctx.lineTo(endX, OUT_H_Y + half);
+    ctx.stroke();
+
+    // Fill interior
+    ctx.fillStyle = 'rgba(201,77,58,0.06)';
+    ctx.fillRect(startX, OUT_H_Y - half, endX - startX, PIPE_W);
+  }
+
+  function drawTank(){
+    const tw = tankW();
+
+    // Water fill with wave
+    const concentration = Math.min(cIn / 100, 1);
+    const waterColor = `rgba(43, 122, 158, ${0.1 + concentration * 0.45})`;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(TANK_X, TANK_Y + TANK_H);
+    ctx.lineTo(TANK_X, TANK_Y + 20);
+    for(let x = TANK_X; x <= TANK_X + tw; x += 2){
+      const wave = Math.sin((x - TANK_X)*0.03 + time*2) * 4
+                 + Math.sin((x - TANK_X)*0.05 + time*3) * 2;
+      ctx.lineTo(x, TANK_Y + 20 + wave);
+    }
+    ctx.lineTo(TANK_X + tw, TANK_Y + TANK_H);
+    ctx.closePath();
+    ctx.fillStyle = waterColor;
+    ctx.fill();
+    ctx.restore();
+
+    // Tank outline (U shape, open top)
+    ctx.strokeStyle = '#555';
+    ctx.lineWidth = 3;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(TANK_X, TANK_Y);
+    ctx.lineTo(TANK_X, TANK_Y + TANK_H);
+    ctx.lineTo(TANK_X + tw, TANK_Y + TANK_H);
+    ctx.lineTo(TANK_X + tw, TANK_Y);
+    ctx.stroke();
+
+    // Labels inside tank
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.font = '600 14px "Noto Sans KR"';
+    ctx.textAlign = 'center';
+    ctx.fillText('잘 섞이는 탱크', TANK_X + tw/2, TANK_Y + TANK_H/2 - 10);
+    ctx.font = '600 22px "JetBrains Mono"';
+    ctx.fillStyle = 'rgba(43,122,158,0.9)';
+    ctx.fillText('Q(t)', TANK_X + tw/2, TANK_Y + TANK_H/2 + 24);
+    ctx.font = '400 13px "Noto Sans KR"';
+    ctx.fillStyle = 'rgba(0,0,0,0.45)';
+    ctx.fillText(`농도 = Q(t)/${V} g/L`, TANK_X + tw/2, TANK_Y + TANK_H/2 + 48);
+
+    // Volume label
+    ctx.font = '500 13px "JetBrains Mono"';
+    ctx.fillStyle = '#888';
+    ctx.fillText(`V = ${V} L`, TANK_X + tw/2, TANK_Y + TANK_H + 24);
+  }
+
+  function drawLabels(){
+    // In-pipe label & arrow
+    ctx.fillStyle = '#2B7A9E';
+    ctx.font = '700 15px "Noto Sans KR"';
+    ctx.textAlign = 'center';
+    ctx.fillText('유입', 100, IN_H_Y - PIPE_W/2 - 14);
+
+    // Arrow inside pipe (horizontal section)
+    ctx.fillStyle = 'rgba(43,122,158,0.5)';
+    ctx.beginPath();
+    ctx.moveTo(155, IN_H_Y - 6);
+    ctx.lineTo(170, IN_H_Y);
+    ctx.lineTo(155, IN_H_Y + 6);
+    ctx.closePath();
+    ctx.fill();
+
+    // Parameter labels
+    ctx.fillStyle = '#2B7A9E';
+    ctx.font = '500 12px "JetBrains Mono"';
+    ctx.textAlign = 'left';
+    ctx.fillText(`c_in = ${cIn} g/L`, 44, IN_H_Y + PIPE_W/2 + 20);
+    ctx.fillText(`F = ${F} L/min`, 44, IN_H_Y + PIPE_W/2 + 36);
+
+    // Out-pipe label & arrow
+    const endX = OUT_H_X1_fn();
+    ctx.fillStyle = '#C94D3A';
+    ctx.font = '700 15px "Noto Sans KR"';
+    ctx.textAlign = 'center';
+    ctx.fillText('유출', endX - 40, OUT_H_Y - PIPE_W/2 - 14);
+
+    // Arrow inside pipe
+    ctx.fillStyle = 'rgba(201,77,58,0.5)';
+    const arX = endX - 50;
+    ctx.beginPath();
+    ctx.moveTo(arX, OUT_H_Y - 6);
+    ctx.lineTo(arX + 15, OUT_H_Y);
+    ctx.lineTo(arX, OUT_H_Y + 6);
+    ctx.closePath();
+    ctx.fill();
+
+    // Out parameter
+    ctx.fillStyle = '#C94D3A';
+    ctx.font = '500 12px "JetBrains Mono"';
+    ctx.textAlign = 'right';
+    ctx.fillText(`(Q/${V})·${F} g/min`, endX - 4, OUT_H_Y + PIPE_W/2 + 20);
+  }
+
+  function drawParticles(){
+    // In-pipe particles
+    inParticles.forEach(p => {
+      p.update();
+      const pos = p.getPos();
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, 3, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(43,122,158,0.75)';
+      ctx.fill();
+    });
+
+    // Out-pipe particles
+    outParticles.forEach(p => {
+      p.update();
+      const pos = p.getPos();
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, 3, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(201,77,58,0.6)';
+      ctx.fill();
+    });
+
+    // Tank particles
+    const concentration = cIn / 100;
+    tankParticles.forEach(p => {
+      p.update();
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 2.5, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(43,122,158,${0.15 + concentration * 0.5})`;
+      ctx.fill();
+    });
+  }
+
+  function drawFormula(){
+    ctx.font = '600 13px "JetBrains Mono"';
+    ctx.fillStyle = 'rgba(0,0,0,0.65)';
+    ctx.textAlign = 'left';
+    ctx.fillText(`dQ/dt = ${cIn}·${F} − (${F}/${V})·Q`, 24, H - 16);
+  }
+
+  function animate(){
+    ctx.clearRect(0, 0, W, H);
+    time += 0.016;
+    drawTank();
+    drawInPipe();
+    drawOutPipe();
+    drawParticles();
+    drawLabels();
+    drawFormula();
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
+
+
+// ══════════════════════════════════════════
+//  ROOM TEMPERATURE ANIMATION
+// ══════════════════════════════════════════
+(function(){
+  const cvs = $('tempCanvas');
+  const ctx = cvs.getContext('2d');
+  let W, H, dpr;
+
+  function resize(){
+    dpr = window.devicePixelRatio || 1;
+    const rect = cvs.parentElement.getBoundingClientRect();
+    W = rect.width; H = 420;
+    cvs.width = W * dpr; cvs.height = H * dpr;
+    cvs.style.height = H + 'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  let T0 = 40, Tenv = 5, k = 0.10;
+  $('initTemp').oninput = e => { T0 = +e.target.value; $('initTempVal').textContent = T0 + ' °C'; };
+  $('envTemp').oninput = e => { Tenv = +e.target.value; $('envTempVal').textContent = Tenv + ' °C'; };
+  $('kVal').oninput = e => { k = +e.target.value / 100; $('kValDisp').textContent = k.toFixed(2); };
+
+  // Heat particles
+  class HeatParticle {
+    constructor(){ this.reset(); }
+    reset(){
+      const diff = T0 - Tenv;
+      const rx = 180, rw = W - 360, roomTop = 130, roomBot = 350;
+      if(diff > 0){
+        this.x = rx + 20 + Math.random()*(rw-40);
+        this.y = roomTop + 20 + Math.random()*(roomBot-roomTop-40);
+        this.targetX = Math.random() < 0.5 ? 30 + Math.random()*80 : W - 110 + Math.random()*80;
+        this.targetY = 40 + Math.random()*320;
+      } else {
+        this.x = Math.random() < 0.5 ? 30 + Math.random()*80 : W - 110 + Math.random()*80;
+        this.y = 40 + Math.random()*320;
+        this.targetX = rx + 20 + Math.random()*(rw-40);
+        this.targetY = roomTop + 20 + Math.random()*(roomBot-roomTop-40);
+      }
+      this.progress = Math.random();
+      this.speed = 0.003 + Math.random()*0.005;
+      this.size = 3 + Math.random()*3;
+    }
+    update(){
+      const absDiff = Math.abs(T0 - Tenv);
+      this.progress += this.speed * (absDiff / 20) * (k / 0.1);
+      if(this.progress > 1) this.reset();
+    }
+    draw(){
+      const x = lerp(this.x, this.targetX, this.progress);
+      const y = lerp(this.y, this.targetY, this.progress);
+      const alpha = Math.sin(this.progress * Math.PI) * 0.7;
+      const isHot = T0 > Tenv;
+      ctx.fillStyle = isHot
+        ? `rgba(220, 80, 50, ${alpha})`
+        : `rgba(50, 130, 200, ${alpha})`;
+      ctx.beginPath();
+      ctx.arc(x, y, this.size, 0, Math.PI*2);
+      ctx.fill();
+    }
+  }
+
+  const particles = Array.from({length:50}, () => new HeatParticle());
+  let time = 0;
+
+  // Bright warm/cool color for temperature (light tones)
+  function tempColor(t, alpha){
+    const norm = Math.max(0, Math.min(1, (t + 10) / 60));
+    // warm = soft orange-red, cool = soft sky blue — all bright
+    const r = Math.round(180 + norm * 75);
+    const g = Math.round(200 - norm * 80);
+    const b = Math.round(240 - norm * 120);
+    return `rgba(${r},${g},${b},${alpha})`;
+  }
+
+  function tempAccent(t){
+    const norm = Math.max(0, Math.min(1, (t + 10) / 60));
+    const r = Math.round(60 + norm * 170);
+    const g = Math.round(120 - norm * 40);
+    const b = Math.round(200 - norm * 150);
+    return `rgb(${r},${g},${b})`;
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    time += 0.016;
+
+    const rx = 180, ry = 70, rw = W - 360, rh = 280;
+    const roomTop = ry + 60;
+    const roomBot = ry + rh;
+
+    // ─── Bright outdoor background ───
+    // Soft sky gradient
+    const skyGrad = ctx.createLinearGradient(0, 0, 0, H);
+    skyGrad.addColorStop(0, '#E8F4FD');
+    skyGrad.addColorStop(0.5, '#F0F7FB');
+    skyGrad.addColorStop(1, '#F5F9ED');
+    ctx.fillStyle = skyGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    // Sun
+    ctx.fillStyle = 'rgba(255, 220, 100, 0.35)';
+    ctx.beginPath();
+    ctx.arc(W - 70, 50, 40, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255, 200, 60, 0.6)';
+    ctx.beginPath();
+    ctx.arc(W - 70, 50, 22, 0, Math.PI*2);
+    ctx.fill();
+
+    // Clouds
+    function drawCloud(cx, cy, s){
+      ctx.fillStyle = 'rgba(255,255,255,0.7)';
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, 30*s, 14*s, 0, 0, Math.PI*2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(cx-18*s, cy+4*s, 18*s, 10*s, 0, 0, Math.PI*2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(cx+20*s, cy+3*s, 22*s, 11*s, 0, 0, Math.PI*2);
+      ctx.fill();
+    }
+    drawCloud(90, 35, 0.8);
+    drawCloud(W - 200, 28, 0.6);
+
+    // Ground
+    ctx.fillStyle = '#E6EDDB';
+    ctx.fillRect(0, roomBot + 8, W, H - roomBot - 8);
+    // Grass line
+    ctx.strokeStyle = '#C5D6A8';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, roomBot + 8);
+    ctx.lineTo(W, roomBot + 8);
+    ctx.stroke();
+
+    // Trees (small)
+    function drawTree(tx, ty){
+      ctx.fillStyle = '#8B7355';
+      ctx.fillRect(tx-3, ty, 6, 18);
+      ctx.fillStyle = '#9BBF6A';
+      ctx.beginPath();
+      ctx.ellipse(tx, ty-4, 14, 18, 0, 0, Math.PI*2);
+      ctx.fill();
+      ctx.fillStyle = '#88B255';
+      ctx.beginPath();
+      ctx.ellipse(tx+4, ty, 10, 14, 0, 0, Math.PI*2);
+      ctx.fill();
+    }
+    drawTree(50, roomBot - 8);
+    drawTree(W - 55, roomBot - 2);
+
+    // ─── Outside temperature label ───
+    ctx.fillStyle = '#5A7A5A';
+    ctx.font = '500 13px "Noto Sans KR"';
+    ctx.textAlign = 'center';
+    ctx.fillText('외부 환경', 78, roomTop + 20);
+    ctx.font = '700 20px "JetBrains Mono"';
+    ctx.fillStyle = tempAccent(Tenv);
+    ctx.fillText(`${Tenv}°C`, 78, roomTop + 48);
+
+    // ─── Room (house shape) ───
+    // Roof
+    ctx.beginPath();
+    ctx.moveTo(rx - 24, roomTop);
+    ctx.lineTo(rx + rw/2, ry);
+    ctx.lineTo(rx + rw + 24, roomTop);
+    ctx.closePath();
+    ctx.fillStyle = '#D4A574';
+    ctx.fill();
+    ctx.strokeStyle = '#B8895C';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Chimney
+    ctx.fillStyle = '#C4956A';
+    ctx.fillRect(rx + rw - 60, ry - 5, 20, 40);
+    ctx.strokeStyle = '#B8895C';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(rx + rw - 60, ry - 5, 20, 40);
+
+    // Room body — warm/cool fill based on T0
+    ctx.fillStyle = tempColor(T0, 0.2);
+    ctx.fillRect(rx, roomTop, rw, roomBot - roomTop);
+
+    // Walls (thick, cream colored)
+    const wallW = 8;
+    ctx.fillStyle = '#E8DDD0';
+    ctx.fillRect(rx - wallW, roomTop, wallW, roomBot - roomTop);
+    ctx.fillRect(rx + rw, roomTop, wallW, roomBot - roomTop);
+    // Bottom wall
+    ctx.fillRect(rx - wallW, roomBot, rw + wallW*2, wallW);
+
+    // Wall outline
+    ctx.strokeStyle = '#B5A899';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(rx - wallW, roomTop, rw + wallW*2, roomBot - roomTop + wallW);
+
+    // Window
+    const winX = rx + rw/2 - 30, winY = roomTop + 30;
+    ctx.fillStyle = '#DCF0FA';
+    ctx.fillRect(winX, winY, 60, 50);
+    ctx.strokeStyle = '#A0B8C8';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(winX, winY, 60, 50);
+    ctx.beginPath();
+    ctx.moveTo(winX + 30, winY);
+    ctx.lineTo(winX + 30, winY + 50);
+    ctx.moveTo(winX, winY + 25);
+    ctx.lineTo(winX + 60, winY + 25);
+    ctx.strokeStyle = '#A0B8C8';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Door
+    ctx.fillStyle = '#C49060';
+    ctx.fillRect(rx + rw/2 - 15, roomBot - 55, 30, 55);
+    ctx.strokeStyle = '#A07040';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(rx + rw/2 - 15, roomBot - 55, 30, 55);
+    // doorknob
+    ctx.fillStyle = '#DDB880';
+    ctx.beginPath();
+    ctx.arc(rx + rw/2 + 8, roomBot - 28, 3, 0, Math.PI*2);
+    ctx.fill();
+
+    // Room labels
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.font = '600 14px "Noto Sans KR"';
+    ctx.textAlign = 'center';
+    ctx.fillText('방 내부', rx + rw/2, roomTop + 110);
+    ctx.font = '700 24px "JetBrains Mono"';
+    ctx.fillStyle = tempAccent(T0);
+    ctx.fillText('T(t)', rx + rw/2, roomTop + 140);
+
+    // ─── Heat flow arrows ───
+    const diff = T0 - Tenv;
+    const arrowAlpha = Math.min(0.85, Math.abs(diff) / 30);
+
+    if(Math.abs(diff) > 0.5){
+      const isHot = diff > 0;
+      const arrowColor = isHot
+        ? `rgba(220, 80, 50, ${arrowAlpha})`
+        : `rgba(50, 130, 200, ${arrowAlpha})`;
+      ctx.strokeStyle = arrowColor;
+      ctx.fillStyle = arrowColor;
+      ctx.lineWidth = 2.5;
+
+      [-1, 1].forEach(side => {
+        const baseX = side === -1 ? rx - wallW : rx + rw + wallW;
+        const dir = isHot ? side : -side;
+
+        for(let i = 0; i < 3; i++){
+          const ay = roomTop + 35 + i * 55;
+          const len = 35 + Math.abs(diff) * 0.7;
+          const startX = baseX;
+          const endX = baseX + dir * len;
+
+          ctx.beginPath();
+          ctx.moveTo(startX, ay);
+          const steps = 8;
+          for(let s = 1; s <= steps; s++){
+            const px = lerp(startX, endX, s/steps);
+            const py = ay + Math.sin(s*1.2 + time*3) * 5;
+            ctx.lineTo(px, py);
+          }
+          ctx.stroke();
+
+          // arrowhead
+          ctx.beginPath();
+          ctx.moveTo(endX + dir*8, ay);
+          ctx.lineTo(endX - dir*2, ay - 5);
+          ctx.lineTo(endX - dir*2, ay + 5);
+          ctx.closePath();
+          ctx.fill();
+        }
+      });
+
+      // Direction label
+      ctx.font = '700 12px "Noto Sans KR"';
+      ctx.fillStyle = arrowColor;
+      ctx.textAlign = 'center';
+      if(isHot){
+        ctx.fillText('열 방출 →', rx + rw + wallW + 55, roomTop + 16);
+        ctx.fillText('← 열 방출', rx - wallW - 55, roomTop + 16);
+      } else {
+        ctx.fillText('← 열 흡수', rx + rw + wallW + 55, roomTop + 16);
+        ctx.fillText('열 흡수 →', rx - wallW - 55, roomTop + 16);
+      }
+    }
+
+    // ─── Particles ───
+    particles.forEach(p => { p.update(); p.draw(); });
+
+    // ─── Graph (bottom area) ───
+    const gx = W - 230, gy = roomBot + 22, gw = 200, gh = 55;
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.strokeStyle = '#D0D0C8';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(gx, gy, gw, gh, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    // T(t) curve
+    ctx.beginPath();
+    ctx.strokeStyle = tempAccent(T0);
+    ctx.lineWidth = 2;
+    for(let i = 0; i <= gw - 10; i++){
+      const t_val = i / (gw-10) * 30;
+      const T_val = Tenv + (T0 - Tenv) * Math.exp(-k * t_val);
+      const minT = Math.min(Tenv, T0) - 5;
+      const maxT = Math.max(Tenv, T0) + 5;
+      const y = gy + gh - 8 - ((T_val - minT) / (maxT - minT)) * (gh - 16);
+      if(i === 0) ctx.moveTo(gx + 5 + i, y);
+      else ctx.lineTo(gx + 5 + i, y);
+    }
+    ctx.stroke();
+
+    // T_env dashed line
+    const minT = Math.min(Tenv, T0) - 5;
+    const maxT = Math.max(Tenv, T0) + 5;
+    const envY = gy + gh - 8 - ((Tenv - minT) / (maxT - minT)) * (gh - 16);
+    ctx.setLineDash([3,3]);
+    ctx.strokeStyle = '#AAA';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(gx + 5, envY);
+    ctx.lineTo(gx + gw - 5, envY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.font = '500 10px "JetBrains Mono"';
+    ctx.fillStyle = '#777';
+    ctx.textAlign = 'left';
+    ctx.fillText('T(t) 그래프', gx + 8, gy + 14);
+    ctx.textAlign = 'right';
+    ctx.fillText('T_env', gx + gw - 8, envY - 4);
+
+    // ─── Formula on canvas ───
+    ctx.font = '600 13px "JetBrains Mono"';
+    ctx.fillStyle = 'rgba(60,60,40,0.6)';
+    ctx.textAlign = 'left';
+    ctx.fillText(`dT/dt = −${k.toFixed(2)}·(T − ${Tenv})`, 24, H - 16);
+  }
+
+  function animate(){
+    draw();
+    requestAnimationFrame(animate);
+  }
+  animate();
+
+  ['initTemp','envTemp','kVal'].forEach(id => {
+    $(id).addEventListener('input', () => {
+      particles.forEach(p => p.reset());
+    });
+  });
+})();
+</script>
+</body>
+</html>
