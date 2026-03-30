@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>변수분리 방정식</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<style>
+  :root {
+    --bg: #FAFAF7;
+    --surface: #FFFFFF;
+    --surface-alt: #F3F1EC;
+    --border: #E2DFD6;
+    --text: #1A1A18;
+    --text-secondary: #6B6960;
+    --accent: #B44D2D;
+    --accent-light: #F4E8E2;
+    --accent2: #2D6B8A;
+    --accent2-light: #E2EFF4;
+    --accent3: #7B5EA7;
+    --accent3-light: #F0EBF5;
+    --shadow: 0 2px 12px rgba(26,26,24,0.06);
+    --radius: 12px;
+    --warn: #C2840C;
+    --warn-bg: #FFF8EB;
+    --warn-border: #F0D68A;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Noto Sans KR',sans-serif; font-weight:400; line-height:1.7; }
+
+  .page-header { text-align:center; padding:52px 24px 36px; position:relative; }
+  .page-header::after { content:''; position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:60px; height:3px; background:var(--accent); border-radius:2px; }
+  .page-header h1 { font-weight:900; font-size:clamp(1.5rem,4vw,2.3rem); letter-spacing:-0.03em; margin-bottom:8px; }
+  .page-header p { color:var(--text-secondary); font-size:0.95rem; font-weight:300; max-width:620px; margin:0 auto; }
+
+  .container { max-width:980px; margin:0 auto; padding:28px 24px 80px; }
+
+  /* Boxes */
+  .box { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:28px 32px; margin-bottom:24px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
+  .box::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; }
+  .box-concept::before { background:var(--accent); }
+  .box-warn { background:var(--warn-bg); border-color:var(--warn-border); margin-bottom:44px; }
+  .box-warn::before { background:var(--warn); }
+
+  .box h2 { font-weight:700; font-size:1.1rem; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+  .box-concept h2 { color:var(--accent); }
+  .box-concept h2::before { content:'📐'; font-size:1.15rem; }
+  .box-warn h2 { color:var(--warn); }
+  .box-warn h2::before { content:'⚠️'; font-size:1.15rem; }
+
+  .formula { text-align:center; margin:16px 0; font-size:1.15rem; }
+  .desc { color:var(--text-secondary); font-size:0.9rem; line-height:1.8; }
+  .box-warn .desc { color:#5A4A10; }
+
+  .highlight-sentence { display:block; margin-top:12px; padding:11px 15px; background:#FFF2D0; border-left:3px solid var(--warn); border-radius:0 8px 8px 0; font-weight:600; font-size:0.93rem; color:#4A3A00; line-height:1.7; }
+
+  /* Example */
+  .example-section { margin-bottom:52px; }
+  .example-header { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+  .example-number { width:42px; height:42px; background:var(--accent); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.05rem; flex-shrink:0; }
+  .example-header h3 { font-weight:700; font-size:1.15rem; }
+  .eq-badge { font-family:'JetBrains Mono',monospace; font-size:0.82rem; background:var(--surface-alt); border:1px solid var(--border); padding:3px 11px; border-radius:18px; color:var(--text-secondary); }
+
+  .problem-stmt { background:var(--surface); border:1.5px solid var(--accent2); border-radius:var(--radius); padding:18px 22px; margin-bottom:18px; display:flex; flex-direction:column; gap:9px; }
+  .problem-label { font-size:0.76rem; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; color:var(--accent2); }
+  .problem-row { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .tag { font-size:0.73rem; font-weight:600; padding:3px 9px; border-radius:6px; flex-shrink:0; }
+  .tag-ode { background:var(--accent2-light); color:var(--accent2); }
+  .tag-ic { background:var(--accent3-light); color:var(--accent3); }
+
+  .controls { display:flex; align-items:center; gap:14px; margin-bottom:18px; flex-wrap:wrap; }
+  .controls label { font-size:0.85rem; font-weight:500; color:var(--text-secondary); }
+  .controls input[type="range"] { -webkit-appearance:none; width:180px; height:6px; border-radius:3px; background:var(--border); outline:none; }
+  .controls input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:var(--accent); cursor:pointer; box-shadow:0 2px 6px rgba(180,77,45,0.3); }
+  .step-count { font-family:'JetBrains Mono',monospace; font-size:0.88rem; font-weight:600; color:var(--accent); min-width:22px; }
+  .num-input { width:48px; font-family:'JetBrains Mono',monospace; text-align:center; border:1px solid var(--border); border-radius:6px; padding:3px; font-size:0.85rem; }
+
+  /* Graph + Steps layout */
+  .graph-steps-row { display:grid; grid-template-columns:280px 1fr; gap:18px; margin-bottom:0; }
+  @media (max-width:780px) { .graph-steps-row { grid-template-columns:1fr; } }
+
+  .graph-panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; display:flex; flex-direction:column; }
+  .graph-panel .graph-title { background:var(--surface-alt); border-bottom:1px solid var(--border); padding:10px 16px; font-weight:500; font-size:0.85rem; color:var(--text-secondary); }
+  .graph-panel canvas { display:block; width:100%; min-height:200px; }
+
+  .steps-wrapper { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; min-width:0; }
+  .steps-header { background:var(--surface-alt); border-bottom:1px solid var(--border); padding:12px 20px; font-weight:500; font-size:0.85rem; color:var(--text-secondary); display:flex; justify-content:space-between; align-items:center; }
+  .steps-body { padding:18px; max-height:420px; overflow-y:auto; }
+  .steps-body::-webkit-scrollbar { width:5px; }
+  .steps-body::-webkit-scrollbar-track { background:transparent; }
+  .steps-body::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+
+  .init-row { display:grid; grid-template-columns:42px 1fr; align-items:center; gap:10px; padding:8px 0 12px; border-bottom:2px dashed var(--accent3); margin-bottom:4px; }
+  .init-row .step-idx { font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:#fff; text-align:center; background:var(--accent3); border-radius:5px; padding:3px 0; font-weight:600; }
+  .init-content { padding:5px 10px; background:var(--accent3-light); border-radius:5px; font-size:0.88rem; }
+
+  .step-row { display:grid; grid-template-columns:42px 1fr 20px 1fr; align-items:center; gap:6px; padding:7px 0; border-bottom:1px solid var(--surface-alt); animation:fadeIn .3s ease-out; font-size:0.82rem; }
+  .step-row:last-child { border-bottom:none; }
+
+  .dy-row { display:grid; grid-template-columns:42px 1fr; align-items:center; gap:8px; padding:4px 0 2px; font-size:0.78rem; }
+  .dy-row .dy-content { padding:4px 10px; background:#EEF6ED; border-radius:5px; border-left:3px solid #5A9E4B; color:#2D5A24; }
+
+  .step-group { border-bottom:1px solid var(--surface-alt); padding-bottom:4px; margin-bottom:2px; }
+  .step-group:last-of-type { border-bottom:none; }
+  .step-group .step-row { border-bottom:none; padding-bottom:2px; }
+
+  .step-lhs .katex, .step-rhs .katex { font-size:0.82em !important; }
+  .dy-content .katex { font-size:0.85em !important; }
+
+  @keyframes fadeIn { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+
+  .step-idx { font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:var(--text-secondary); text-align:center; background:var(--surface-alt); border-radius:5px; padding:3px 0; }
+  .step-lhs, .step-rhs { text-align:center; padding:4px; border-radius:5px; }
+  .step-lhs { background:var(--accent-light); }
+  .step-rhs { background:var(--accent2-light); }
+  .step-eq { text-align:center; font-weight:700; color:var(--text-secondary); font-size:0.95rem; }
+
+  .sum-section { margin-top:2px; padding-top:12px; border-top:2px solid var(--accent); }
+  .sum-section .step-row { border-bottom:none; font-weight:600; }
+  .sum-section .step-idx { background:var(--accent); color:#fff; font-weight:700; font-size:0.68rem; }
+
+  .result-box { margin-top:18px; background:linear-gradient(135deg,var(--accent-light),var(--accent2-light)); border:1.5px solid var(--accent); border-radius:var(--radius); padding:22px 24px; text-align:center; }
+  .result-box .label { font-size:0.78rem; font-weight:500; color:var(--accent); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px; }
+  .result-box .formula { font-size:1.1rem; }
+  .particular { margin-top:12px; padding-top:12px; border-top:1px dashed var(--accent); }
+  .particular .label { color:var(--accent3); }
+
+  .definite-box { margin-top:18px; background:var(--surface); border:1.5px solid #5A9E4B; border-radius:var(--radius); padding:22px 26px; position:relative; overflow:hidden; }
+  .definite-box::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; background:#5A9E4B; }
+  .definite-title { font-weight:700; font-size:0.95rem; color:#3A7A2E; margin-bottom:10px; }
+  .definite-desc { font-size:0.88rem; color:var(--text-secondary); line-height:1.7; margin-bottom:8px; }
+  .definite-box .formula { margin:10px 0; font-size:1.05rem; }
+
+  .note { margin-top:14px; padding:12px 16px; background:var(--surface-alt); border-radius:8px; font-size:0.83rem; color:var(--text-secondary); line-height:1.7; }
+  .note strong { color:var(--text); font-weight:600; }
+
+  /* Appendix section */
+  .appendix-divider { margin:56px 0 40px; text-align:center; position:relative; }
+  .appendix-divider::before { content:''; position:absolute; top:50%; left:0; right:0; height:1px; background:var(--border); }
+  .appendix-divider span { position:relative; background:var(--bg); padding:0 20px; font-size:0.82rem; font-weight:600; color:var(--text-secondary); letter-spacing:0.08em; text-transform:uppercase; }
+
+  .deep-box { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:32px 36px; margin-bottom:28px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
+  .deep-box::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; background:var(--accent2); }
+  .deep-box h2 { font-weight:700; font-size:1.15rem; margin-bottom:18px; color:var(--accent2); display:flex; align-items:center; gap:8px; }
+  .deep-box h2::before { content:'🔍'; font-size:1.15rem; }
+  .deep-box h3 { font-weight:700; font-size:1rem; margin:24px 0 12px; color:var(--text); }
+  .deep-box p { font-size:0.92rem; line-height:1.85; color:var(--text-secondary); margin-bottom:12px; }
+  .deep-box p strong { color:var(--text); }
+  .deep-box .formula { margin:14px 0; font-size:1.05rem; }
+  .deep-box .sub-box { margin:18px 0; padding:16px 20px; border-radius:8px; }
+  .deep-box .sub-box-green { background:#EEF6ED; border-left:3px solid #5A9E4B; }
+  .deep-box .sub-box-blue { background:var(--accent2-light); border-left:3px solid var(--accent2); }
+  .deep-box .sub-box-amber { background:var(--warn-bg); border-left:3px solid var(--warn); }
+  .deep-box .sub-box p { margin-bottom:6px; }
+  .deep-box .sub-box .formula { margin:8px 0; }
+  .deep-box .sign-table { width:100%; border-collapse:collapse; margin:14px 0; font-size:0.88rem; }
+  .deep-box .sign-table th, .deep-box .sign-table td { padding:8px 14px; text-align:center; border:1px solid var(--border); }
+  .deep-box .sign-table th { background:var(--surface-alt); font-weight:600; font-size:0.82rem; color:var(--text-secondary); }
+  .deep-box .sign-table td { background:var(--surface); }
+  .deep-box .sign-pos { color:#3A7A2E; font-weight:600; }
+  .deep-box .sign-neg { color:#B44D2D; font-weight:600; }
+
+  .katex { font-size:1em !important; }
+  .formula .katex { font-size:1.1em !important; }
+
+  @media (max-width:640px) {
+    .step-row { grid-template-columns:34px 1fr 22px 1fr; gap:4px; font-size:0.78rem; }
+    .init-row { grid-template-columns:34px 1fr; }
+    .box { padding:20px 16px; }
+    .steps-body { padding:12px; }
+    .controls { gap:8px; }
+    .controls input[type="range"] { width:120px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>변수분리 방정식</h1>
+  <p>각 미소 구간에서의 등식을 누적하여 적분의 의미를 직관적으로 이해합니다</p>
+</div>
+
+<div class="container">
+
+  <div class="box box-concept">
+    <h2>핵심 아이디어</h2>
+    <div class="formula" id="concept-formula"></div>
+    <p class="desc">
+      변수분리 방정식에서 양변을 각각의 변수로 분리한 뒤, 
+      미소 구간 <span id="inline-dx"></span>마다 등식이 성립함을 이용합니다. 
+      각 단계에서 <span id="inline-f"></span>와 <span id="inline-g"></span>를 
+      해당 지점의 값으로 평가하고, 이를 모두 더하면 양변의 적분이 됩니다.
+    </p>
+  </div>
+
+  <div class="box box-warn">
+    <h2>초기조건의 역할 — 왜 초기조건이 필요한가?</h2>
+    <div class="formula" id="ic-formula"></div>
+    <p class="desc">
+      미분방정식의 <strong>일반해</strong>에는 적분상수 <span id="inline-C"></span>가 포함되어 
+      무한히 많은 해 곡선의 "가족"을 나타냅니다.
+      <strong>초기조건</strong> <span id="inline-ic"></span>을 주어야 비로소 
+      <span id="inline-C2"></span>의 값이 결정되어 <strong>단 하나의 특수해</strong>가 확정됩니다.
+    </p>
+    <div class="highlight-sentence">
+      미분방정식만으로는 해가 유일하게 결정되지 않습니다.<br>
+      <strong>"미분방정식 + 초기조건"</strong> — 이 두 가지가 함께 주어져야 특정한 하나의 해를 얻습니다.<br>
+      아래 세 예제의 그래프에서, 회색 곡선(다른 C 값)과 빨간 곡선(초기조건에 의한 특수해)을 비교해 보세요.
+    </div>
+  </div>
+
+  <!-- ====== EXAMPLE 1 ====== -->
+  <div class="example-section" id="ex1">
+    <div class="example-header">
+      <div class="example-number">1</div>
+      <h3>예제 1</h3>
+      <span class="eq-badge" id="ex1-badge"></span>
+    </div>
+    <div class="problem-stmt">
+      <div class="problem-label">Initial Value Problem</div>
+      <div class="problem-row"><span class="tag tag-ode">미분방정식</span><span id="ex1-ode"></span></div>
+      <div class="problem-row"><span class="tag tag-ic">초기조건</span><span id="ex1-ic"></span></div>
+    </div>
+    <div class="controls">
+      <label>N:</label>
+      <input type="range" min="3" max="50" value="5" id="slider1" oninput="render1()">
+      <span class="step-count" id="count1">5</span>
+      <label>x 끝값:</label>
+      <input type="number" value="3" step="0.5" class="num-input" id="ex1b" onchange="render1()">
+    </div>
+    <div class="graph-steps-row">
+      <div class="graph-panel">
+        <div class="graph-title">그래프: 일반해 가족 & 특수해 & 이산 근사</div>
+        <canvas id="canvas1" width="640"></canvas>
+      </div>
+      <div class="steps-wrapper">
+        <div class="steps-header"><span>단계별 전개</span><span id="ex1-dx-info" style="font-family:'JetBrains Mono';font-size:0.8rem;"></span></div>
+        <div class="steps-body" id="steps1"></div>
+      </div>
+    </div>
+    <div class="result-box">
+      <div class="label">양변을 모두 더하면 (N → ∞ 에서 적분)</div>
+      <div class="formula" id="result1"></div>
+      <div class="particular">
+        <div class="label">초기조건 y(0)=0 적용 → 특수해</div>
+        <div class="formula" id="result1p"></div>
+      </div>
+    </div>
+    <div class="definite-box">
+      <div class="definite-title">💡 정적분으로 바로 특수해 구하기</div>
+      <p class="definite-desc">초기조건 <span id="d1ic"></span>을 적분의 <strong>하한</strong>으로 사용하면, 적분상수 C 없이 특수해가 바로 나옵니다:</p>
+      <div class="formula" id="d1f1"></div>
+      <div class="formula" id="d1f2"></div>
+      <div class="formula" id="d1f3"></div>
+    </div>
+    <div class="note" id="note1"></div>
+  </div>
+
+  <!-- ====== EXAMPLE 2 ====== -->
+  <div class="example-section" id="ex2">
+    <div class="example-header">
+      <div class="example-number">2</div>
+      <h3>예제 2</h3>
+      <span class="eq-badge" id="ex2-badge"></span>
+    </div>
+    <div class="problem-stmt">
+      <div class="problem-label">Initial Value Problem</div>
+      <div class="problem-row"><span class="tag tag-ode">미분방정식</span><span id="ex2-ode"></span></div>
+      <div class="problem-row"><span class="tag tag-ic">초기조건</span><span id="ex2-ic"></span></div>
+    </div>
+    <div class="controls">
+      <label>N:</label>
+      <input type="range" min="3" max="50" value="5" id="slider2" oninput="render2()">
+      <span class="step-count" id="count2">5</span>
+      <label>x 끝값:</label>
+      <input type="number" value="2" step="0.5" class="num-input" id="ex2b" onchange="render2()">
+    </div>
+    <div class="graph-steps-row">
+      <div class="graph-panel">
+        <div class="graph-title">그래프: 일반해 가족 & 특수해 & 이산 근사</div>
+        <canvas id="canvas2" width="640"></canvas>
+      </div>
+      <div class="steps-wrapper">
+        <div class="steps-header"><span>단계별 전개</span><span id="ex2-dx-info" style="font-family:'JetBrains Mono';font-size:0.8rem;"></span></div>
+        <div class="steps-body" id="steps2"></div>
+      </div>
+    </div>
+    <div class="result-box">
+      <div class="label">양변을 모두 더하면 (N → ∞ 에서 적분)</div>
+      <div class="formula" id="result2"></div>
+      <div class="particular">
+        <div class="label">초기조건 y(0)=1 적용 → 특수해</div>
+        <div class="formula" id="result2p"></div>
+      </div>
+    </div>
+    <div class="definite-box">
+      <div class="definite-title">💡 정적분으로 바로 특수해 구하기</div>
+      <p class="definite-desc">초기조건 <span id="d2ic"></span>을 적분의 <strong>하한</strong>으로 사용하면, C 없이 특수해가 바로 나옵니다:</p>
+      <div class="formula" id="d2f1"></div>
+      <div class="formula" id="d2f2"></div>
+      <div class="formula" id="d2f3"></div>
+    </div>
+    <div class="note" id="note2"></div>
+  </div>
+
+  <!-- ====== EXAMPLE 3 ====== -->
+  <div class="example-section" id="ex3">
+    <div class="example-header">
+      <div class="example-number">3</div>
+      <h3>예제 3</h3>
+      <span class="eq-badge" id="ex3-badge"></span>
+    </div>
+    <div class="problem-stmt">
+      <div class="problem-label">Initial Value Problem</div>
+      <div class="problem-row"><span class="tag tag-ode">미분방정식</span><span id="ex3-ode"></span></div>
+      <div class="problem-row"><span class="tag tag-ic">초기조건</span><span id="ex3-ic"></span></div>
+    </div>
+    <div class="controls">
+      <label>N:</label>
+      <input type="range" min="3" max="50" value="5" id="slider3" oninput="render3()">
+      <span class="step-count" id="count3">5</span>
+      <label>x 끝값:</label>
+      <input type="number" value="1" step="0.5" class="num-input" id="ex3b" onchange="render3()">
+    </div>
+    <div class="graph-steps-row">
+      <div class="graph-panel">
+        <div class="graph-title">그래프: 일반해 가족 & 특수해 & 이산 근사</div>
+        <canvas id="canvas3" width="640"></canvas>
+      </div>
+      <div class="steps-wrapper">
+        <div class="steps-header"><span>단계별 전개</span><span id="ex3-dx-info" style="font-family:'JetBrains Mono';font-size:0.8rem;"></span></div>
+        <div class="steps-body" id="steps3"></div>
+      </div>
+    </div>
+    <div class="result-box">
+      <div class="label">양변을 모두 더하면 (N → ∞ 에서 적분)</div>
+      <div class="formula" id="result3"></div>
+      <div class="particular">
+        <div class="label">초기조건 y(0)=1 적용 → 특수해</div>
+        <div class="formula" id="result3p"></div>
+      </div>
+    </div>
+    <div class="definite-box">
+      <div class="definite-title">💡 정적분으로 바로 특수해 구하기</div>
+      <p class="definite-desc">초기조건 <span id="d3ic"></span>을 적분의 <strong>하한</strong>으로 사용하면, C 없이 특수해가 바로 나옵니다:</p>
+      <div class="formula" id="d3f1"></div>
+      <div class="formula" id="d3f2"></div>
+      <div class="formula" id="d3f3"></div>
+    </div>
+    <div class="note" id="note3"></div>
+  </div>
+
+  <!-- ====== APPENDIX ====== -->
+  <div class="appendix-divider"><span>심화 토론</span></div>
+
+  <div class="deep-box" id="appendix1">
+    <h2><span id="ap-title-dy"></span>가 음수일 때도 성립하는가?</h2>
+
+    <p>
+      보통 리만 합에서 <span id="ap-riemann"></span>을 생각할 때, 
+      <span id="ap-dxpos"></span>를 자연스럽게 가정합니다. 
+      그런데 변수분리 방정식 <span id="ap-ode"></span>에서 우변의 <span id="ap-dyi"></span>가 
+      <strong>음수</strong>가 되는 경우가 있습니다 — 예제 3이 바로 그런 경우입니다.
+    </p>
+
+    <h3>예제 3에서 실제로 무슨 일이 일어나는가</h3>
+    <p>
+      <span id="ap-ex3"></span>에서 초기조건 <span id="ap-ic3"></span>이면, 
+      <span id="ap-xinc"></span>가 증가할 때 <span id="ap-ydec"></span>는 <strong>감소</strong>합니다 (단위원 위를 따라 이동). 
+      따라서 매 단계에서 <span id="ap-dyneg"></span>입니다.
+    </p>
+
+    <p>이때 각 단계의 부호를 점검해 봅시다:</p>
+
+    <table class="sign-table">
+      <tr>
+        <th>항목</th>
+        <th>부호</th>
+        <th>이유</th>
+      </tr>
+      <tr>
+        <td id="ap-t1"></td>
+        <td class="sign-pos"><span id="ap-plus1"></span></td>
+        <td><span id="ap-t1r"></span> 증가 방향으로 설정</td>
+      </tr>
+      <tr>
+        <td id="ap-t2"></td>
+        <td class="sign-pos"><span id="ap-plus2"></span></td>
+        <td id="ap-t2r"></td>
+      </tr>
+      <tr>
+        <td id="ap-t3"></td>
+        <td class="sign-neg"><span id="ap-minus1"></span></td>
+        <td><span id="ap-t3r"></span>가 감소하므로</td>
+      </tr>
+      <tr>
+        <td id="ap-t4"></td>
+        <td class="sign-neg"><span id="ap-minus2"></span></td>
+        <td id="ap-t4r"></td>
+      </tr>
+      <tr>
+        <td id="ap-t5"></td>
+        <td class="sign-pos"><span id="ap-plus3"></span></td>
+        <td><span id="ap-t5r"></span></td>
+      </tr>
+    </table>
+
+    <div class="sub-box sub-box-green">
+      <p><strong>결론:</strong> 좌변 <span id="ap-lhs"></span>도 양수, 우변 <span id="ap-rhs"></span>도 양수. 
+      <span id="ap-dyi2"></span>의 부호가 음수여도 <span id="ap-gy"></span>의 부호와 곱해지면서 
+      등식의 양변이 정확히 일치합니다.</p>
+    </div>
+
+    <h3>수학적으로 왜 문제가 없는가</h3>
+
+    <p>리만 합의 정의를 다시 봅시다:</p>
+    <div class="formula" id="ap-riemannDef"></div>
+
+    <p>
+      여기서 <span id="ap-dyi3"></span>는 단순히 <span id="ap-dydef"></span>입니다. 
+      <span id="ap-ydec2"></span>가 감소하면 이 값은 자연스럽게 <strong>음수</strong>가 됩니다. 
+      리만 합 → 적분의 수렴 정리에는 <span id="ap-cond"></span>이라는 조건이 없습니다. 
+      단지 <span id="ap-mesh"></span>이면 충분합니다.
+    </p>
+
+    <div class="sub-box sub-box-blue">
+      <p><strong>정적분의 방향성:</strong> <span id="ap-intdir"></span>에서 <span id="ap-ab"></span>이면 
+      적분값의 부호가 바뀝니다:</p>
+      <div class="formula" id="ap-intrev"></div>
+      <p>이것이 정확히 <span id="ap-dyneg2"></span>인 상황에 대응합니다.</p>
+    </div>
+
+    <h3>예제 3으로 직접 확인</h3>
+    <p>양변을 초기조건 <span id="ap-ic3b"></span>부터 정적분하면:</p>
+    <div class="formula" id="ap-verify1"></div>
+    <p>
+      좌변: <span id="ap-left0"></span>가 <span id="ap-left1"></span>로 증가, <span id="ap-left2"></span> — 문제없음.
+    </p>
+    <p>
+      우변: <span id="ap-right0"></span>가 <span id="ap-right1"></span>로 <strong>감소</strong> (<span id="ap-ylt1"></span>), 
+      즉 적분 상한이 하한보다 작습니다. 이때:
+    </p>
+    <div class="formula" id="ap-verify2"></div>
+    <p>풀어쓰면:</p>
+    <div class="formula" id="ap-verify3"></div>
+
+    <div class="sub-box sub-box-amber">
+      <p><strong>본질적 이유:</strong> 미분방정식 <span id="ap-df"></span>은 
+      <strong>미분 형식(differential form)의 등식</strong>입니다. 
+      <span id="ap-dxdy"></span>는 <strong>부호를 가진 미소량</strong>이며, 
+      "<span id="ap-xinc2"></span>가 증가하면 <span id="ap-ydec3"></span>도 증가한다"는 
+      가정을 하지 않습니다. 등식은 부호를 포함해서 항상 성립하기 때문에, 
+      <span id="ap-dyfinal"></span>의 부호에 관계없이 이산화와 적분 모두 올바르게 작동합니다.</p>
+    </div>
+  </div>
+
+  <!-- ====== APPENDIX 2: dx와 dy의 본질 ====== -->
+  <div class="appendix-divider"><span>더 깊은 이해</span></div>
+
+  <div class="deep-box" id="appendix2">
+    <h2><span id="ap2-title-dx"></span>와 <span id="ap2-title-dy"></span>는 대등하다</h2>
+
+    <p>
+      위의 시뮬레이션에서 우리는 <span id="ap2-dx-fix"></span>를 균일하게 <strong>설정</strong>하고, 
+      미분방정식으로부터 <span id="ap2-dy-calc"></span>를 <strong>계산</strong>했습니다. 
+      마치 <span id="ap2-dx2"></span>가 원인이고 <span id="ap2-dy2"></span>가 결과인 것처럼요. 
+      하지만 이것은 수치 근사를 위한 인위적 선택이었을 뿐, 실제 수학에서는 그런 인과관계가 없습니다.
+    </p>
+
+    <h3>해 곡선이 모든 것을 결정한다</h3>
+
+    <p>
+      변수분리형 미분방정식 <span id="ap2-ode"></span>의 해는 
+      <span id="ap2-sol"></span>이라는 곡선입니다.
+      (<span id="ap2-FG"></span>는 각각 <span id="ap2-fg"></span>의 역도함수)
+    </p>
+
+    <p>
+      이 곡선 위의 임의의 점 <span id="ap2-pt"></span>에서 곡선을 따라 미소하게 움직이면, 
+      새 위치 <span id="ap2-pt2"></span>도 같은 곡선 위에 있어야 합니다:
+    </p>
+
+    <div class="formula" id="ap2-eq1"></div>
+
+    <p>테일러 전개하면:</p>
+
+    <div class="formula" id="ap2-eq2"></div>
+
+    <p>
+      여기서 <span id="ap2-cancel"></span>이므로 상쇄되고, <span id="ap2-ho"></span>이므로:
+    </p>
+
+    <div class="formula" id="ap2-eq3"></div>
+
+    <div class="sub-box sub-box-blue">
+      <p>
+        <strong>핵심:</strong> 미분방정식 <span id="ap2-ode2"></span>는 
+        "<span id="ap2-dx3"></span>를 주면 <span id="ap2-dy3"></span>가 결정된다"는 인과적 규칙이 <strong>아닙니다.</strong> 
+        해 곡선 <span id="ap2-sol2"></span> 위에 머무르기 위해 
+        <span id="ap2-dx4"></span>와 <span id="ap2-dy4"></span>가 <strong>자동으로 만족해야 하는 구속조건</strong>입니다.
+      </p>
+    </div>
+
+    <h3>접선이 <span id="ap2-dxdy-h3"></span>를 동시에 결정한다</h3>
+
+    <p>
+      곡선 위의 점에서 접선 방향을 <span id="ap2-tangent"></span>이라 하면, 
+      이 방향은 곡선의 기하학적 형태에 의해 결정됩니다. 
+      <span id="ap2-dx5"></span>와 <span id="ap2-dy5"></span> 중 어느 것이 먼저 정해지는 것이 아니라, 
+      <strong>접선이라는 하나의 방향</strong>이 둘을 동시에 결정합니다.
+    </p>
+
+    <p>
+      따라서 <span id="ap2-x6"></span>가 증가하든 감소하든, <span id="ap2-y6"></span>가 증가하든 감소하든, 
+      곡선 위에 있는 한 등식은 항상 성립합니다. 
+      <span id="ap2-dx6"></span>나 <span id="ap2-dy6"></span>의 부호는 곡선의 국소적 방향에 따라 
+      자연스럽게 결정되며, 우리가 선택하는 것이 아닙니다.
+    </p>
+
+    <h3>시뮬레이션의 인위성</h3>
+
+    <p>
+      우리 시뮬레이션에서 "<span id="ap2-sim1"></span>를 균일하게 설정하고 <span id="ap2-sim2"></span>를 계산한다"는 것은 
+      이 대등한 관계를 <strong>인위적으로 깨뜨려서</strong> 수치적으로 한 발씩 전진하기 위한 근사 전략이었습니다.
+    </p>
+
+    <div class="sub-box sub-box-green">
+      <p>
+        <strong>정리:</strong> 미분방정식 <span id="ap2-final1"></span>은 
+        해 곡선 위에서 <span id="ap2-final2"></span>와 <span id="ap2-final3"></span>가 
+        만족하는 <strong>기하학적 구속조건</strong>입니다. 
+        어느 한쪽이 다른 쪽을 결정하는 것이 아니라, 
+        곡선의 접선 방향이 둘을 동시에 결정합니다. 
+        수치 시뮬레이션에서 한쪽을 고정하는 것은 편의를 위한 근사일 뿐입니다.
+      </p>
+    </div>
+  </div>
+
+  <!-- ====== APPENDIX 2.5: 매개변수 관점 ====== -->
+  <div class="appendix-divider"><span>매개변수 관점</span></div>
+
+  <div class="deep-box" id="appendix2b">
+    <h2>매개변수 <span id="ap2b-s"></span>를 도입하면 적분이 더 투명해진다</h2>
+
+    <p>
+      부록 2에서 해 곡선 위의 접선 방향이 <span id="ap2b-dxdy"></span>를 동시에 결정한다고 했습니다.
+      이 관점을 <strong>적분 단계</strong>로 자연스럽게 확장할 수 있습니다 —
+      해 곡선을 하나의 매개변수 <span id="ap2b-s2"></span>로 매개화하는 것입니다.
+    </p>
+
+    <h3>독립변수의 통일</h3>
+
+    <p>
+      해 곡선 위의 점을 <span id="ap2b-curve"></span>로 나타내면,
+      미분방정식 <span id="ap2b-ode"></span>은 체인룰에 의해 다음과 같이 변환됩니다:
+    </p>
+
+    <div class="formula" id="ap2b-eq1"></div>
+
+    <p>
+      원래의 변수분리 적분에서는 양변의 독립변수가 서로 달랐습니다:
+    </p>
+
+    <div class="formula" id="ap2b-eq2"></div>
+
+    <p>
+      하지만 매개변수 <span id="ap2b-s3"></span>를 도입하면,
+      <strong>양변이 모두 같은 변수 <span id="ap2b-s4"></span>에 대한 적분</strong>이 되고,
+      적분 구간도 <span id="ap2b-interval"></span>로 통일됩니다:
+    </p>
+
+    <div class="formula" id="ap2b-eq3"></div>
+
+    <div class="sub-box sub-box-amber" style="margin-bottom:18px;">
+      <p style="font-weight:700; color:#4A3A00; margin-bottom:8px;">📌 미적분학의 기본정리 (Fundamental Theorem of Calculus)</p>
+      <p><strong>제1 기본정리:</strong> 적분하면 역도함수가 된다.</p>
+      <div class="formula" id="ap2b-ftc1"></div>
+      <p><strong>제2 기본정리:</strong> 역도함수로 정적분을 계산할 수 있다.</p>
+      <div class="formula" id="ap2b-ftc2"></div>
+    </div>
+
+    <div class="sub-box sub-box-blue">
+      <p>
+        <strong>장점:</strong> "서로 다른 변수에 대한 두 적분이 왜 같은가?"라는
+        개념적 의문이 처음부터 발생하지 않습니다.
+        하나의 변수, 하나의 구간 위에서 두 양을 비교하는 것이므로 구조가 대칭적이고 명료합니다.
+      </p>
+    </div>
+
+    <h3>미적분학의 기본정리가 바로 적용된다</h3>
+
+    <p>
+      피적분함수의 구조를 잘 보면, 양변 모두 도함수를 적분하는 형태임을 알 수 있습니다:
+    </p>
+
+    <div class="formula" id="ap2b-eq4"></div>
+
+    <p>
+      따라서 미적분학의 기본정리 <span id="ap2b-ftc"></span>를
+      양변에 적용하면, <strong>치환적분 없이</strong> 곧바로:
+    </p>
+
+    <div class="formula" id="ap2b-eq5"></div>
+
+    <div class="sub-box sub-box-green">
+      <p>
+        <strong>핵심:</strong> "도함수를 적분하면 원래 함수의 끝값 빼기 시작값" —
+        이 하나의 원리만으로 결과가 나옵니다. 치환적분이나 부정적분의 상수 결정 같은
+        추가 기법이 필요하지 않습니다.
+      </p>
+    </div>
+
+    <h3>예제 3으로 확인</h3>
+
+    <p>
+      <span id="ap2b-ex3ode"></span>, 초기조건 <span id="ap2b-ex3ic"></span>인 경우,
+      해 곡선을 <span id="ap2b-ex3param"></span>으로 매개화합니다.
+      <span id="ap2b-ex3s0"></span>일 때 <span id="ap2b-ex3start"></span>이고,
+      임의의 <span id="ap2b-ex3s1"></span>에서의 점을 <span id="ap2b-ex3end"></span>이라 하면:
+    </p>
+
+    <div class="formula" id="ap2b-eq6"></div>
+
+    <p>미적분학의 기본정리에 의해:</p>
+
+    <div class="formula" id="ap2b-eq7"></div>
+
+    <p>즉 <span id="ap2b-eq8"></span>이므로, 매개변수 <span id="ap2b-s5"></span>를 소거하면:</p>
+
+    <div class="formula" id="ap2b-eq9"></div>
+
+    <div class="sub-box sub-box-amber">
+      <p>
+        <strong>부록 2와의 관계:</strong>
+        부록 2에서 "접선 방향이 <span id="ap2b-rel-dxdy"></span>를 동시에 결정한다"고 했습니다.
+        매개변수 <span id="ap2b-rel-s"></span>는 이 접선 방향을
+        <span id="ap2b-rel-deriv"></span>로 표현하는 방법입니다.
+        국소적 관점(미분)을 대역적 관점(적분)으로 확장할 때,
+        <span id="ap2b-rel-s2"></span>가 공통 독립변수 역할을 하여 양변의 적분 구조를 통일해 줍니다.
+      </p>
+    </div>
+  </div>
+
+  <!-- ====== APPENDIX 3: 원 위의 두 점 ====== -->
+  <div class="appendix-divider"><span>기하학적 시각화</span></div>
+
+  <div class="deep-box" id="appendix3">
+    <h2>원 위의 두 이웃한 점과 <span id="ap3-title"></span></h2>
+
+    <p>
+      미분방정식 <span id="ap3-ode"></span>이 의미하는 것을 
+      해 곡선(단위원) 위의 <strong>두 이웃한 점</strong>으로 직접 확인해 봅시다.
+    </p>
+
+    <div class="controls">
+      <label>점 P의 위치 (θ):</label>
+      <input type="range" min="5" max="355" value="158" id="sliderTheta" oninput="renderCircleDiag()">
+      <span class="step-count" id="thetaVal">158°</span>
+      <label style="margin-left:20px;">dx 크기:</label>
+      <input type="range" min="1" max="40" value="37" id="sliderDx" oninput="renderCircleDiag()">
+      <span class="step-count" id="dxSize">0.37</span>
+    </div>
+
+    <div style="display:flex; justify-content:center;">
+      <div class="graph-panel" style="max-width:480px; width:100%;">
+        <canvas id="canvasCircleDiag" width="640"></canvas>
+      </div>
+    </div>
+
+    <div style="margin-top:16px; text-align:center;">
+      <div class="formula" id="ap3-coords"></div>
+    </div>
+
+    <div style="margin-top:12px;">
+      <div class="formula" id="ap3-derive1"></div>
+      <div class="formula" id="ap3-derive2"></div>
+      <div class="formula" id="ap3-derive3"></div>
+    </div>
+
+    <div class="sub-box sub-box-blue" style="margin-top:16px;">
+      <p>
+        <strong>기하학적 의미:</strong> 
+        <span id="ap3-P"></span>와 <span id="ap3-Q"></span>가 모두 원 위에 있으려면, 
+        <span id="ap3-dxdy"></span>는 반드시 <span id="ap3-constraint"></span>을 만족해야 합니다. 
+        이것이 미분방정식 <span id="ap3-ode2"></span>의 본질입니다.
+      </p>
+      <p style="margin-top:6px;">
+        슬라이더로 <span id="ap3-theta"></span>를 움직여 보세요 — 
+        사분면에 따라 <span id="ap3-dx-sign"></span>와 <span id="ap3-dy-sign"></span>의 부호가 바뀌지만, 
+        등식은 항상 성립합니다.
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function tex(el, latex) {
+  if (typeof el === 'string') el = document.getElementById(el);
+  if (!el) return;
+  katex.render(latex, el, { throwOnError: false, displayMode: el.classList.contains('formula') });
+}
+function fmt(v) {
+  if (Math.abs(v) < 1e-12) return '0';
+  const r = Math.round(v * 10000) / 10000;
+  if (Number.isInteger(r)) return r.toString();
+  return r.toFixed(4).replace(/0+$/, '').replace(/\.$/, '');
+}
+
+/* =========================================================
+   GRAPH DRAWING UTILITY
+   ========================================================= */
+function drawGraph(canvasId, opts) {
+  const canvas = document.getElementById(canvasId);
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = canvas.clientWidth;
+  const pad = { top:20, right:20, bottom:36, left:42 };
+
+  let [xmin, xmax] = opts.xRange;
+  let [ymin, ymax] = opts.yRange;
+
+  // Enforce equal scale: compute pixels per unit from x-axis, then adjust canvas height
+  const gW = cssW - pad.left - pad.right;
+  const xSpan = xmax - xmin;
+  const pxPerUnit = gW / xSpan;
+  const ySpan = ymax - ymin;
+  const gH = ySpan * pxPerUnit;
+  const cssH = gH + pad.top + pad.bottom;
+
+  canvas.style.height = cssH + 'px';
+  canvas.width = cssW * dpr;
+  canvas.height = cssH * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const W = cssW, H = cssH;
+
+  function toX(v) { return pad.left + (v - xmin) / xSpan * gW; }
+  function toY(v) { return pad.top + (1 - (v - ymin) / ySpan) * gH; }
+
+  // Background
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid
+  ctx.strokeStyle = '#EDEBE6';
+  ctx.lineWidth = 1;
+  for (let x = Math.ceil(xmin); x <= Math.floor(xmax); x++) {
+    ctx.beginPath(); ctx.moveTo(toX(x), pad.top); ctx.lineTo(toX(x), pad.top + gH); ctx.stroke();
+  }
+  for (let y = Math.ceil(ymin); y <= Math.floor(ymax); y++) {
+    ctx.beginPath(); ctx.moveTo(pad.left, toY(y)); ctx.lineTo(pad.left + gW, toY(y)); ctx.stroke();
+  }
+
+  // Axes
+  ctx.strokeStyle = '#B0ADA4';
+  ctx.lineWidth = 1.5;
+  // x-axis
+  if (ymin <= 0 && ymax >= 0) {
+    ctx.beginPath(); ctx.moveTo(pad.left, toY(0)); ctx.lineTo(pad.left+gW, toY(0)); ctx.stroke();
+  }
+  // y-axis
+  if (xmin <= 0 && xmax >= 0) {
+    ctx.beginPath(); ctx.moveTo(toX(0), pad.top); ctx.lineTo(toX(0), pad.top+gH); ctx.stroke();
+  }
+
+  // Axis labels
+  ctx.fillStyle = '#8A8780';
+  ctx.font = '11px JetBrains Mono, monospace';
+  ctx.textAlign = 'center';
+  for (let x = Math.ceil(xmin); x <= Math.floor(xmax); x++) {
+    ctx.fillText(x, toX(x), pad.top + gH + 16);
+  }
+  ctx.textAlign = 'right';
+  for (let y = Math.ceil(ymin); y <= Math.floor(ymax); y++) {
+    ctx.fillText(y, pad.left - 8, toY(y) + 4);
+  }
+  ctx.fillStyle = '#6B6960';
+  ctx.font = '12px Noto Sans KR, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('x', pad.left + gW + 10, toY(0) + 4);
+  ctx.textAlign = 'right';
+  ctx.fillText('y', toX(0) - 6, pad.top - 4);
+
+  // Helper to draw a curve
+  function drawCurve(fn, color, width, dash) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.setLineDash(dash || []);
+    ctx.beginPath();
+    let started = false;
+    const steps = 400;
+    for (let i = 0; i <= steps; i++) {
+      const x = xmin + (xmax - xmin) * i / steps;
+      const y = fn(x);
+      if (y === null || isNaN(y) || !isFinite(y) || y < ymin - 2 || y > ymax + 2) {
+        started = false;
+        continue;
+      }
+      if (!started) { ctx.moveTo(toX(x), toY(y)); started = true; }
+      else ctx.lineTo(toX(x), toY(y));
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Family curves (gray, dashed)
+  if (opts.familyCurves) {
+    opts.familyCurves.forEach(c => {
+      drawCurve(c.fn, c.color || '#D0CDC4', c.width || 1.2, c.dash || [6,4]);
+    });
+  }
+
+  // Exact particular solution (red, solid)
+  if (opts.exactCurve) {
+    drawCurve(opts.exactCurve.fn, opts.exactCurve.color || '#B44D2D', opts.exactCurve.width || 2.5, []);
+  }
+
+  // Discrete approximation (blue dots + lines)
+  if (opts.discretePoints && opts.discretePoints.length > 1) {
+    const pts = opts.discretePoints;
+    // Lines
+    ctx.strokeStyle = '#2D6B8A';
+    ctx.lineWidth = 1.8;
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.moveTo(toX(pts[0].x), toY(pts[0].y));
+    for (let i = 1; i < pts.length; i++) {
+      ctx.lineTo(toX(pts[i].x), toY(pts[i].y));
+    }
+    ctx.stroke();
+
+    // Dots
+    pts.forEach((p, i) => {
+      ctx.fillStyle = i === 0 ? '#7B5EA7' : '#2D6B8A';
+      ctx.beginPath();
+      ctx.arc(toX(p.x), toY(p.y), i === 0 ? 5 : 3.5, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+
+  // IC point highlight
+  if (opts.icPoint) {
+    const px = toX(opts.icPoint.x), py = toY(opts.icPoint.y);
+    ctx.fillStyle = 'rgba(123,94,167,0.15)';
+    ctx.beginPath(); ctx.arc(px, py, 12, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#7B5EA7';
+    ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#7B5EA7';
+    ctx.font = 'bold 11px JetBrains Mono, monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(`(${opts.icPoint.x}, ${opts.icPoint.y})`, px + 10, py - 6);
+  }
+
+  // Legend
+  const lx = pad.left + 10, ly = pad.top + 14;
+  ctx.font = '11px Noto Sans KR, sans-serif';
+  // Family
+  ctx.strokeStyle = '#D0CDC4'; ctx.lineWidth = 1.5; ctx.setLineDash([5,3]);
+  ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx+24, ly); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = '#8A8780'; ctx.textAlign = 'left';
+  ctx.fillText('일반해 (다른 C)', lx+28, ly+4);
+  // Exact
+  ctx.strokeStyle = '#B44D2D'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(lx, ly+16); ctx.lineTo(lx+24, ly+16); ctx.stroke();
+  ctx.fillStyle = '#B44D2D';
+  ctx.fillText('특수해 (정확해)', lx+28, ly+20);
+  // Discrete
+  ctx.strokeStyle = '#2D6B8A'; ctx.lineWidth = 1.8;
+  ctx.beginPath(); ctx.moveTo(lx, ly+32); ctx.lineTo(lx+24, ly+32); ctx.stroke();
+  ctx.fillStyle = '#2D6B8A';
+  ctx.beginPath(); ctx.arc(lx+12, ly+32, 3, 0, Math.PI*2); ctx.fill();
+  ctx.fillText('이산 근사 (N단계)', lx+28, ly+36);
+}
+
+/* =========================================================
+   RENDER FUNCTIONS
+   ========================================================= */
+
+/* ----- Example 1: dx = dy, y(0)=0 ----- */
+function render1() {
+  const N = parseInt(document.getElementById('slider1').value);
+  const a = 0, y0 = 0;
+  const b = parseFloat(document.getElementById('ex1b').value);
+  document.getElementById('count1').textContent = N;
+  const dx = (b - a) / N;
+  tex('ex1-dx-info', `\\Delta x = ${fmt(dx)}`);
+
+  // Steps
+  let html = `<div class="init-row"><div class="step-idx">시작</div><div class="init-content" id="ex1-init"></div></div>`;
+  let sumL = 0, sumR = 0;
+  for (let i = 1; i <= N; i++) {
+    html += `<div class="step-group"><div class="dy-row"><div class="step-idx">i=${i}</div><div class="dy-content" id="ex1-dy${i}"></div></div>`;
+    html += `<div class="step-row"><div class="step-idx"></div><div class="step-lhs" id="ex1-l${i}"></div><div class="step-eq">=</div><div class="step-rhs" id="ex1-r${i}"></div></div></div>`;
+  }
+  html += `<div class="sum-section"><div class="step-row"><div class="step-idx">Σ</div><div class="step-lhs" id="ex1-sl"></div><div class="step-eq">=</div><div class="step-rhs" id="ex1-sr"></div></div></div>`;
+  document.getElementById('steps1').innerHTML = html;
+  tex('ex1-init', `(x_0, y_0) = (${fmt(a)}, ${fmt(y0)}) \\; \\text{← 초기조건}`);
+
+  let xi = a, yi = y0;
+  const pts = [{x:xi, y:yi}];
+  for (let i = 1; i <= N; i++) {
+    const dyi = dx; // from dx = dy
+    sumL += dx; sumR += dyi;
+    // dy determination
+    tex(`ex1-dy${i}`, `\\Delta x_{${i}}=${fmt(dx)}\\;\\text{(설정)} \\;\\Rightarrow\\; dx=dy \\;\\Rightarrow\\; \\Delta y_{${i}}=${fmt(dyi)}`);
+    tex(`ex1-l${i}`, `f(x_{${i}})\\cdot\\Delta x = f(${fmt(xi)})\\cdot${fmt(dx)} = 1 \\times ${fmt(dx)} = ${fmt(dx)}`);
+    tex(`ex1-r${i}`, `g(y_{${i}})\\cdot\\Delta y = g(${fmt(yi)})\\cdot${fmt(dyi)} = 1 \\times ${fmt(dyi)} = ${fmt(dyi)}`);
+    xi += dx; yi += dyi;
+    pts.push({x:xi, y:yi});
+  }
+  tex('ex1-sl', `\\sum = ${fmt(sumL)}`);
+  tex('ex1-sr', `\\sum = ${fmt(sumR)}`);
+
+  tex('result1', `\\int 1\\,dx = \\int 1\\,dy \\;\\Longrightarrow\\; x = y + C \\;\\text{(일반해)}`);
+  tex('result1p', `0 = 0 + C \\;\\Rightarrow\\; C=0 \\;\\Rightarrow\\; \\boxed{y = x}`);
+
+  // Graph
+  const xmax = Math.max(b, 3);
+  const familyCurves = [-2,-1,1,2].map(c => ({ fn: x => x + c }));
+  drawGraph('canvas1', {
+    xRange: [-0.5, xmax + 0.5],
+    yRange: [-0.5, xmax + 0.5],
+    familyCurves,
+    exactCurve: { fn: x => x },
+    discretePoints: pts,
+    icPoint: { x: 0, y: 0 }
+  });
+
+  document.getElementById('note1').innerHTML =
+    `<strong>핵심:</strong> 일반해 <span id="n1g"></span>에서 회색 점선은 서로 다른 C값의 직선들입니다. 초기조건 <span id="n1ic"></span>으로 <span id="n1C"></span>이 확정되어 빨간 직선(특수해 <span id="n1ps"></span>)이 선택됩니다. 파란 점은 이산 근사로, N이 커질수록 정확해에 가까워집니다.`;
+  tex('n1g','x=y+C'); tex('n1ic','y(0)=0'); tex('n1C','C=0'); tex('n1ps','y=x');
+
+  // Definite integral
+  tex('d1ic', 'y(0)=0');
+  tex('d1f1', `\\int_{x_0=0}^{x} 1\\,dx' = \\int_{y_0=0}^{y} 1\\,dy'`);
+  tex('d1f2', `\\Big[x'\\Big]_0^x = \\Big[y'\\Big]_0^y`);
+  tex('d1f3', `x - 0 = y - 0 \\;\\;\\Longrightarrow\\;\\; \\boxed{\\,y = x\\,}`);
+}
+
+/* ----- Example 2: xdx = ydy, y(0)=1 ----- */
+function render2() {
+  const N = parseInt(document.getElementById('slider2').value);
+  const a = 0, y0 = 1;
+  const b = parseFloat(document.getElementById('ex2b').value);
+  document.getElementById('count2').textContent = N;
+  const dx = (b - a) / N;
+  tex('ex2-dx-info', `\\Delta x = ${fmt(dx)}`);
+
+  let html = `<div class="init-row"><div class="step-idx">시작</div><div class="init-content" id="ex2-init"></div></div>`;
+  let sumL = 0, sumR = 0;
+  for (let i = 1; i <= N; i++) {
+    html += `<div class="step-group"><div class="dy-row"><div class="step-idx">i=${i}</div><div class="dy-content" id="ex2-dy${i}"></div></div>`;
+    html += `<div class="step-row"><div class="step-idx"></div><div class="step-lhs" id="ex2-l${i}"></div><div class="step-eq">=</div><div class="step-rhs" id="ex2-r${i}"></div></div></div>`;
+  }
+  html += `<div class="sum-section"><div class="step-row"><div class="step-idx">Σ</div><div class="step-lhs" id="ex2-sl"></div><div class="step-eq">=</div><div class="step-rhs" id="ex2-sr"></div></div></div>`;
+  document.getElementById('steps2').innerHTML = html;
+  tex('ex2-init', `(x_0, y_0) = (${fmt(a)}, ${fmt(y0)}) \\; \\text{← 초기조건}`);
+
+  let xi = a, yi = y0;
+  const pts = [{x:xi, y:yi}];
+  for (let i = 1; i <= N; i++) {
+    const fxi = xi, gyi = yi;
+    const dyi = (Math.abs(gyi) < 1e-12) ? dx : (fxi / gyi) * dx;
+    const lVal = fxi * dx, rVal = gyi * dyi;
+    sumL += lVal; sumR += rVal;
+    // dy determination: x_i dx = y_i dy => dy = (x_i / y_i) dx
+    tex(`ex2-dy${i}`, `\\Delta x_{${i}}=${fmt(dx)}\\;\\text{(설정)} \\;\\Rightarrow\\; \\Delta y_{${i}} = \\frac{x_{${i}}}{y_{${i}}}\\Delta x = \\frac{${fmt(fxi)}}{${fmt(gyi)}}\\cdot${fmt(dx)} = ${fmt(dyi)}`);
+    tex(`ex2-l${i}`, `f(x_{${i}})\\cdot\\Delta x = x_{${i}}\\cdot\\Delta x = ${fmt(fxi)}\\times ${fmt(dx)} = ${fmt(lVal)}`);
+    tex(`ex2-r${i}`, `g(y_{${i}})\\cdot\\Delta y = y_{${i}}\\cdot\\Delta y = ${fmt(gyi)}\\times ${fmt(dyi)} = ${fmt(rVal)}`);
+    xi += dx; yi += dyi;
+    pts.push({x:xi, y:yi});
+  }
+  tex('ex2-sl', `\\sum = ${fmt(sumL)}`);
+  tex('ex2-sr', `\\sum = ${fmt(sumR)}`);
+
+  tex('result2', `\\int x\\,dx = \\int y\\,dy \\;\\Longrightarrow\\; \\frac{x^2}{2} = \\frac{y^2}{2} + C \\;\\text{(일반해)}`);
+  tex('result2p', `0 = \\tfrac{1}{2}+C \\;\\Rightarrow\\; C=-\\tfrac{1}{2} \\;\\Rightarrow\\; \\boxed{y=\\sqrt{x^2+1}}`);
+
+  // Graph: x^2 - y^2 = 2C => y = sqrt(x^2 - 2C) for different C
+  const xmax = Math.max(b, 2);
+  const familyCurves = [];
+  // C values for family: y^2 = x^2 - 2C => 2C = x^2 - y^2, at (0,y0): 2C = -y0^2
+  // Different y0 values for family
+  [0.3, 0.6, 1.5, 2, 2.5, 3].forEach(yy => {
+    const cc = -yy*yy/2; // C = -yy^2/2
+    familyCurves.push({ fn: x => { const v = x*x - 2*cc; return v >= 0 ? Math.sqrt(v) : null; } });
+  });
+  drawGraph('canvas2', {
+    xRange: [-0.5, xmax + 0.5],
+    yRange: [-0.5, xmax + 0.5],
+    familyCurves,
+    exactCurve: { fn: x => Math.sqrt(x*x + 1) },
+    discretePoints: pts,
+    icPoint: { x: 0, y: 1 }
+  });
+
+  document.getElementById('note2').innerHTML =
+    `<strong>핵심:</strong> 일반해 <span id="n2gen"></span>에서 회색 곡선들은 서로 다른 C값에 해당합니다. 초기조건 <span id="n2ic"></span>으로 <span id="n2Cv"></span>가 결정되어 빨간 곡선(특수해 <span id="n2ps"></span>)이 유일하게 선택됩니다.`;
+  tex('n2gen','x^2/2 = y^2/2 + C'); tex('n2ic','y(0)=1'); tex('n2Cv','C=-1/2'); tex('n2ps','y=\\sqrt{x^2+1}');
+
+  // Definite integral
+  tex('d2ic', 'y(0)=1');
+  tex('d2f1', `\\int_{x_0=0}^{x} x'\\,dx' = \\int_{y_0=1}^{y} y'\\,dy'`);
+  tex('d2f2', `\\left[\\frac{x'^2}{2}\\right]_0^x = \\left[\\frac{y'^2}{2}\\right]_1^y`);
+  tex('d2f3', `\\frac{x^2}{2} - 0 = \\frac{y^2}{2} - \\frac{1}{2} \\;\\;\\Longrightarrow\\;\\; \\boxed{\\,y = \\sqrt{x^2+1}\\,}`);
+}
+
+/* ----- Example 3: xdx = -ydy, y(0)=1 ----- */
+function render3() {
+  const N = parseInt(document.getElementById('slider3').value);
+  const a = 0, y0 = 1;
+  const b = parseFloat(document.getElementById('ex3b').value);
+  document.getElementById('count3').textContent = N;
+  const dx = (b - a) / N;
+  tex('ex3-dx-info', `\\Delta x = ${fmt(dx)}`);
+
+  let html = `<div class="init-row"><div class="step-idx">시작</div><div class="init-content" id="ex3-init"></div></div>`;
+  let sumL = 0, sumR = 0;
+  for (let i = 1; i <= N; i++) {
+    html += `<div class="step-group"><div class="dy-row"><div class="step-idx">i=${i}</div><div class="dy-content" id="ex3-dy${i}"></div></div>`;
+    html += `<div class="step-row"><div class="step-idx"></div><div class="step-lhs" id="ex3-l${i}"></div><div class="step-eq">=</div><div class="step-rhs" id="ex3-r${i}"></div></div></div>`;
+  }
+  html += `<div class="sum-section"><div class="step-row"><div class="step-idx">Σ</div><div class="step-lhs" id="ex3-sl"></div><div class="step-eq">=</div><div class="step-rhs" id="ex3-sr"></div></div></div>`;
+  document.getElementById('steps3').innerHTML = html;
+  tex('ex3-init', `(x_0, y_0) = (${fmt(a)}, ${fmt(y0)}) \\; \\text{← 초기조건}`);
+
+  // xdx = -ydy => dy = -(x/y) dx
+  let xi = a, yi = y0;
+  const pts = [{x:xi, y:yi}];
+  for (let i = 1; i <= N; i++) {
+    const fxi = xi;
+    const lVal = fxi * dx;
+    let dyi = (Math.abs(yi) < 1e-12) ? 0 : -(fxi / yi) * dx;
+    const rVal = (-yi) * dyi; // g(y)*dy = (-y)*dy
+    sumL += lVal; sumR += rVal;
+    // dy determination: x dx = -y dy => dy = -(x/y) dx
+    tex(`ex3-dy${i}`, `\\Delta x_{${i}}=${fmt(dx)}\\;\\text{(설정)} \\;\\Rightarrow\\; \\Delta y_{${i}} = -\\frac{x_{${i}}}{y_{${i}}}\\Delta x = -\\frac{${fmt(fxi)}}{${fmt(yi)}}\\cdot${fmt(dx)} = ${fmt(dyi)}`);
+    tex(`ex3-l${i}`, `f(x_{${i}})\\cdot\\Delta x = x_{${i}}\\cdot\\Delta x = ${fmt(fxi)}\\times ${fmt(dx)} = ${fmt(lVal)}`);
+    tex(`ex3-r${i}`, `g(y_{${i}})\\cdot\\Delta y = (-y_{${i}})\\cdot\\Delta y = (${fmt(-yi)})\\times ${fmt(dyi)} = ${fmt(rVal)}`);
+    xi += dx; yi += dyi;
+    pts.push({x:xi, y:Math.max(yi, 0)});
+  }
+  tex('ex3-sl', `\\sum = ${fmt(sumL)}`);
+  tex('ex3-sr', `\\sum = ${fmt(sumR)}`);
+
+  // General: x^2/2 = -y^2/2 + C => x^2 + y^2 = 2C => circle
+  // IC: 0 + 1 = 2C => C = 1/2, so x^2 + y^2 = 1
+  tex('result3', `\\int x\\,dx = \\int (-y)\\,dy \\;\\Longrightarrow\\; \\frac{x^2}{2} = -\\frac{y^2}{2} + C \\;\\text{(일반해)}`);
+  tex('result3p', `0 = -\\tfrac{1}{2}+C \\;\\Rightarrow\\; C=\\tfrac{1}{2} \\;\\Rightarrow\\; \\boxed{x^2 + y^2 = 1 \\;\\;(\\text{단위원})}`);
+
+  // Graph: family = circles x^2 + y^2 = R^2 (y>=0 upper half)
+  const xmax = Math.max(b, 1.2);
+  const familyCurves = [];
+  [0.5, 0.7, 1.3, 1.6, 2, 2.5].forEach(R => {
+    familyCurves.push({ fn: x => { const v = R*R - x*x; return v >= 0 ? Math.sqrt(v) : null; } });
+  });
+
+  drawGraph('canvas3', {
+    xRange: [-0.5, xmax + 0.5],
+    yRange: [-0.5, xmax + 0.5],
+    familyCurves,
+    exactCurve: { fn: x => { const v = 1 - x*x; return v >= 0 ? Math.sqrt(v) : null; } },
+    discretePoints: pts,
+    icPoint: { x: 0, y: 1 }
+  });
+
+  document.getElementById('note3').innerHTML =
+    `<strong>핵심:</strong> 일반해 <span id="n3gen"></span>는 <strong>원</strong>의 방정식입니다! 회색 원들은 서로 다른 반지름(다른 C값)의 원입니다. ` +
+    `초기조건 <span id="n3ic"></span>으로 <span id="n3Cv"></span>가 결정되어, 특수해는 반지름 1인 <strong>단위원</strong> <span id="n3ps"></span>이 됩니다. ` +
+    `예제 2(<span id="n3cmp"></span>)와 부호 하나 차이로 쌍곡선이 원으로 바뀌는 것에 주목하세요.`;
+  tex('n3gen','x^2+y^2=2C'); tex('n3ic','y(0)=1'); tex('n3Cv','C=1/2'); tex('n3ps','x^2+y^2=1');
+  tex('n3cmp','x\\,dx = y\\,dy');
+
+  // Definite integral
+  tex('d3ic', 'y(0)=1');
+  tex('d3f1', `\\int_{x_0=0}^{x} x'\\,dx' = \\int_{y_0=1}^{y} (-y')\\,dy'`);
+  tex('d3f2', `\\left[\\frac{x'^2}{2}\\right]_0^x = \\left[-\\frac{y'^2}{2}\\right]_1^y`);
+  tex('d3f3', `\\frac{x^2}{2} = -\\frac{y^2}{2} + \\frac{1}{2} \\;\\;\\Longrightarrow\\;\\; \\boxed{\\,x^2 + y^2 = 1\\,}`);
+}
+
+function init() {
+  tex('concept-formula',
+    'f(x)\\,dx = g(y)\\,dy \\;\\Longrightarrow\\; \\sum_{i=1}^{N} f(x_i)\\,\\Delta x_i = \\sum_{i=1}^{N} g(y_i)\\,\\Delta y_i \\;\\xrightarrow{N\\to\\infty}\\; \\int f(x)\\,dx = \\int g(y)\\,dy');
+  tex('inline-dx', '\\Delta x');
+  tex('inline-f', 'f(x_i)');
+  tex('inline-g', 'g(y_i)');
+
+  tex('ic-formula',
+    '\\underbrace{f(x)\\,dx = g(y)\\,dy}_{\\text{미분방정식 → 일반해 (}C\\text{ 포함)}} \\;\\;\\&\\;\\; \\underbrace{y(x_0)=y_0}_{\\text{초기조건}} \\;\\Longrightarrow\\; \\text{유일한 특수해}');
+  tex('inline-C', 'C');
+  tex('inline-ic', 'y(x_0)=y_0');
+  tex('inline-C2', 'C');
+
+  tex('ex1-badge', 'dx = dy');
+  tex('ex2-badge', 'x\\,dx = y\\,dy');
+  tex('ex3-badge', 'x\\,dx = -y\\,dy');
+
+  tex('ex1-ode', 'dx = dy \\;\\Leftrightarrow\\; \\dfrac{dy}{dx}=1');
+  tex('ex1-ic', 'y(0)=0 \\;\\leftarrow\\; \\text{점 }(0,0)\\text{을 지남}');
+  tex('ex2-ode', 'x\\,dx = y\\,dy \\;\\Leftrightarrow\\; \\dfrac{dy}{dx}=\\dfrac{x}{y}');
+  tex('ex2-ic', 'y(0)=1 \\;\\leftarrow\\; \\text{점 }(0,1)\\text{에서 출발}');
+  tex('ex3-ode', 'x\\,dx = -y\\,dy \\;\\Leftrightarrow\\; \\dfrac{dy}{dx}=-\\dfrac{x}{y}');
+  tex('ex3-ic', 'y(0)=1 \\;\\leftarrow\\; \\text{점 }(0,1)\\text{에서 출발}');
+
+  render1(); render2(); render3();
+
+  // Appendix KaTeX
+  tex('ap-title-dy', '\\Delta y');
+  tex('ap-riemann', '\\int f(x)\\,dx \\approx \\sum f(x_i)\\,\\Delta x_i');
+  tex('ap-dxpos', '\\Delta x_i > 0');
+  tex('ap-ode', 'f(x)\\,dx = g(y)\\,dy');
+  tex('ap-dyi', '\\Delta y_i');
+  tex('ap-ex3', 'x\\,dx = -y\\,dy');
+  tex('ap-ic3', 'y(0)=1');
+  tex('ap-xinc', 'x');
+  tex('ap-ydec', 'y');
+  tex('ap-dyneg', '\\Delta y_i < 0');
+
+  // sign table
+  tex('ap-t1', '\\Delta x_i');
+  tex('ap-plus1', '+');
+  tex('ap-t1r', 'x');
+  tex('ap-t2', 'x_i \\cdot \\Delta x_i \\;\\text{(좌변)}');
+  tex('ap-plus2', '+');
+  tex('ap-t2r', 'x_i > 0,\\; \\Delta x_i > 0');
+  tex('ap-t3', '\\Delta y_i');
+  tex('ap-minus1', '-');
+  tex('ap-t3r', 'y');
+  tex('ap-t4', '-y_i \\;\\;\\text{즉 }g(y_i)');
+  tex('ap-minus2', '-');
+  tex('ap-t4r', 'y_i > 0 \\;\\Rightarrow\\; -y_i < 0');
+  tex('ap-t5', 'g(y_i)\\cdot\\Delta y_i = (-y_i)(\\Delta y_i) \\;\\text{(우변)}');
+  tex('ap-plus3', '+');
+  tex('ap-t5r', '(-) \\times (-) = (+)');
+
+  tex('ap-lhs', 'x_i \\cdot \\Delta x_i');
+  tex('ap-rhs', '(-y_i)(\\Delta y_i)');
+  tex('ap-dyi2', '\\Delta y_i');
+  tex('ap-gy', 'g(y_i) = -y_i');
+
+  tex('ap-riemannDef', '\\sum_{i=1}^{N} g(y_i)\\,\\Delta y_i \\;\\xrightarrow{N\\to\\infty}\\; \\int g(y)\\,dy');
+  tex('ap-dyi3', '\\Delta y_i');
+  tex('ap-dydef', 'y_{i+1} - y_i');
+  tex('ap-ydec2', 'y');
+  tex('ap-cond', '\\Delta y_i > 0');
+  tex('ap-mesh', '\\max|\\Delta y_i| \\to 0');
+
+  tex('ap-intdir', '\\int_a^b g(y)\\,dy');
+  tex('ap-ab', 'a > b');
+  tex('ap-intrev', '\\int_a^b g(y)\\,dy = -\\int_b^a g(y)\\,dy');
+  tex('ap-dyneg2', '\\Delta y_i < 0');
+
+  tex('ap-ic3b', '(0,\\,1)');
+  tex('ap-verify1', '\\int_0^x x\'\\,dx\' = \\int_1^y (-y\')\\,dy\'');
+  tex('ap-left0', 'x');
+  tex('ap-left1', '0 \\to x');
+  tex('ap-left2', '\\Delta x > 0');
+  tex('ap-right0', 'y');
+  tex('ap-right1', '1 \\to y');
+  tex('ap-ylt1', 'y < 1');
+  tex('ap-verify2', '\\int_1^y (-y\')\\,dy\' \\;=\\; -\\int_1^y y\'\\,dy\' \\;\\overset{y<1}{=}\\; -\\!\\left(-\\int_y^1 y\'\\,dy\'\\right) = \\int_y^1 y\'\\,dy\'');
+  tex('ap-verify3', '\\frac{x^2}{2} = -\\frac{y^2}{2} + \\frac{1}{2} \\;\\;\\Longrightarrow\\;\\; x^2 + y^2 = 1 \\;\\;\\checkmark');
+
+  tex('ap-df', 'f(x)\\,dx = g(y)\\,dy');
+  tex('ap-dxdy', 'dx \\text{와 } dy');
+  tex('ap-xinc2', 'x');
+  tex('ap-ydec3', 'y');
+  tex('ap-dyfinal', '\\Delta y');
+
+  // Appendix 2: dx와 dy의 본질
+  tex('ap2-title-dx', 'dx');
+  tex('ap2-title-dy', 'dy');
+  tex('ap2-dx-fix', '\\Delta x');
+  tex('ap2-dy-calc', '\\Delta y');
+  tex('ap2-dx2', 'dx');
+  tex('ap2-dy2', 'dy');
+
+  tex('ap2-ode', 'f(x)\\,dx = g(y)\\,dy');
+  tex('ap2-sol', 'F(x) = G(y) + C');
+  tex('ap2-FG', 'F,\\, G');
+  tex('ap2-fg', 'f,\\, g');
+
+  tex('ap2-pt', '(x,\\, y)');
+  tex('ap2-pt2', '(x+dx,\\, y+dy)');
+  tex('ap2-eq1', 'F(x + dx) = G(y + dy) + C');
+  tex('ap2-eq2', 'F(x) + F\'(x)\\,dx + \\tfrac{1}{2}F\'\'(x)\\,dx^2 + \\cdots \\;=\\; G(y) + G\'(y)\\,dy + \\tfrac{1}{2}G\'\'(y)\\,dy^2 + \\cdots \\;+\\; C');
+  tex('ap2-cancel', 'F(x) = G(y) + C');
+  tex('ap2-ho', 'dx, dy \\to 0 \\text{이면 고차항 소멸}');
+  tex('ap2-eq3', 'F\'(x)\\,dx + \\underbrace{\\tfrac{1}{2}F\'\'(x)\\,dx^2 + \\cdots}_{\\to\\,0} \\;=\\; G\'(y)\\,dy + \\underbrace{\\tfrac{1}{2}G\'\'(y)\\,dy^2 + \\cdots}_{\\to\\,0} \\;\\;\\Longrightarrow\\;\\; f(x)\\,dx = g(y)\\,dy');
+
+  tex('ap2-ode2', 'f(x)\\,dx = g(y)\\,dy');
+  tex('ap2-dx3', 'dx');
+  tex('ap2-dy3', 'dy');
+  tex('ap2-sol2', 'F(x) = G(y) + C');
+  tex('ap2-dx4', 'dx');
+  tex('ap2-dy4', 'dy');
+
+  tex('ap2-dxdy-h3', '(dx,\\, dy)');
+  tex('ap2-tangent', '(dx,\\, dy)');
+  tex('ap2-dx5', 'dx');
+  tex('ap2-dy5', 'dy');
+  tex('ap2-x6', 'x');
+  tex('ap2-y6', 'y');
+  tex('ap2-dx6', 'dx');
+  tex('ap2-dy6', 'dy');
+
+  tex('ap2-sim1', '\\Delta x');
+  tex('ap2-sim2', '\\Delta y');
+
+  tex('ap2-final1', 'f(x)\\,dx = g(y)\\,dy');
+  tex('ap2-final2', 'dx');
+  tex('ap2-final3', 'dy');
+
+  // Appendix 2b: 매개변수 관점
+  tex('ap2b-s', 's');
+  tex('ap2b-dxdy', '(dx,\\, dy)');
+  tex('ap2b-s2', 's');
+  tex('ap2b-curve', '(x(s),\\, y(s))');
+  tex('ap2b-ode', 'x\\,dx = -y\\,dy');
+  tex('ap2b-eq1', 'x(s)\\,\\frac{dx}{ds}\\,ds \\;=\\; -\\,y(s)\\,\\frac{dy}{ds}\\,ds');
+  tex('ap2b-eq2', '\\int_{x_0}^{x_1} x\\,dx \\;=\\; -\\int_{y_0}^{y_1} y\\,dy \\qquad \\leftarrow\\;\\text{좌변은 }x\\text{에 대한 적분,  우변은 }y\\text{에 대한 적분}');
+  tex('ap2b-s3', 's');
+  tex('ap2b-s4', 's');
+  tex('ap2b-interval', '[s_0,\\, s_1]');
+  tex('ap2b-eq3', '\\int_{s_0}^{s_1} x(s)\\,\\frac{dx}{ds}\\,ds \\;=\\; -\\int_{s_0}^{s_1} y(s)\\,\\frac{dy}{ds}\\,ds \\qquad \\leftarrow\\;\\text{양변 모두 }s\\text{에 대한 적분, 같은 구간}');
+  tex('ap2b-eq4', 'x(s)\\,\\frac{dx}{ds} = \\frac{1}{2}\\,\\frac{d}{ds}\\bigl[x^2(s)\\bigr], \\qquad y(s)\\,\\frac{dy}{ds} = \\frac{1}{2}\\,\\frac{d}{ds}\\bigl[y^2(s)\\bigr]');
+  tex('ap2b-ftc', '\\displaystyle\\int_a^b \\frac{d}{ds}[\\,h(s)\\,]\\,ds = h(b) - h(a)');
+  tex('ap2b-ftc1', '\\displaystyle\\frac{d}{dx}\\int_a^x f(t)\\,dt \\;=\\; f(x)');
+  tex('ap2b-ftc2', '\\displaystyle\\int_a^b F\'(t)\\,dt \\;=\\; F(b) - F(a)');
+  tex('ap2b-eq5', '\\frac{1}{2}\\Bigl[x^2(s_1) - x^2(s_0)\\Bigr] \\;=\\; -\\,\\frac{1}{2}\\Bigl[y^2(s_1) - y^2(s_0)\\Bigr]');
+  tex('ap2b-ex3ode', 'x\\,dx = -y\\,dy');
+  tex('ap2b-ex3ic', 'y(0) = 1');
+  tex('ap2b-ex3param', '(x(s),\\, y(s))');
+  tex('ap2b-ex3s0', 's = s_0');
+  tex('ap2b-ex3start', '(x, y) = (0, 1)');
+  tex('ap2b-ex3s1', 's_1');
+  tex('ap2b-ex3end', '(x(s_1),\\, y(s_1))');
+  tex('ap2b-eq6', '\\frac{1}{2}\\int_{s_0}^{s_1} \\frac{d}{ds}\\bigl[x^2(s)\\bigr]\\,ds \\;=\\; -\\,\\frac{1}{2}\\int_{s_0}^{s_1} \\frac{d}{ds}\\bigl[y^2(s)\\bigr]\\,ds');
+  tex('ap2b-eq7', '\\frac{x^2(s_1) - 0^2}{2} \\;=\\; -\\,\\frac{y^2(s_1) - 1^2}{2}');
+  tex('ap2b-eq8', 'x(s_1),\\; y(s_1)\\text{는 해 곡선 위의 임의의 점}');
+  tex('ap2b-s5', 's');
+  tex('ap2b-eq9', '\\frac{x^2}{2} = -\\frac{y^2}{2} + \\frac{1}{2} \\;\\;\\Longrightarrow\\;\\; \\boxed{\\,x^2 + y^2 = 1\\,}');
+  tex('ap2b-rel-dxdy', '(dx,\\,dy)');
+  tex('ap2b-rel-s', 's');
+  tex('ap2b-rel-deriv', '\\bigl(\\tfrac{dx}{ds},\\, \\tfrac{dy}{ds}\\bigr)');
+  tex('ap2b-rel-s2', 's');
+
+  // Appendix 3: Circle diagram
+  tex('ap3-title', 'x\\,dx = -y\\,dy');
+  tex('ap3-ode', 'x\\,dx = -y\\,dy');
+  tex('ap3-P', 'P');
+  tex('ap3-Q', 'Q');
+  tex('ap3-dxdy', '(dx,\\,dy)');
+  tex('ap3-constraint', 'x\\,dx + y\\,dy = 0');
+  tex('ap3-ode2', 'x\\,dx = -y\\,dy');
+  tex('ap3-theta', '\\theta');
+  tex('ap3-dx-sign', 'dx');
+  tex('ap3-dy-sign', 'dy');
+
+  renderCircleDiag();
+}
+
+/* =========================================================
+   CIRCLE DIAGRAM
+   ========================================================= */
+function renderCircleDiag() {
+  const thetaDeg = parseInt(document.getElementById('sliderTheta').value);
+  const dxMag = parseInt(document.getElementById('sliderDx').value) / 100;
+  document.getElementById('thetaVal').textContent = thetaDeg + '°';
+  document.getElementById('dxSize').textContent = dxMag.toFixed(2);
+
+  const theta = thetaDeg * Math.PI / 180;
+  const px = Math.cos(theta), py = Math.sin(theta);
+
+  // Q on the circle: move by dx along x, find dy so that Q is on circle
+  const dx = dxMag * (thetaDeg > 90 && thetaDeg < 270 ? 1 : -1) * (thetaDeg > 180 ? -1 : 1);
+  // Actually, let's compute dx from a small angle change dθ
+  // so Q is exactly on the circle
+  const dtheta = -dxMag * 1.5; // negative = clockwise
+  const qx = Math.cos(theta + dtheta), qy = Math.sin(theta + dtheta);
+  const dxVal = qx - px, dyVal = qy - py;
+
+  // Verify: x dx + y dy
+  const lhs = px * dxVal;
+  const rhs = -py * dyVal;
+  const xdxVal = px * dxVal;
+  const ydyVal = py * dyVal;
+
+  // Signs
+  const dxSign = dxVal >= 0 ? '+' : '-';
+  const dySign = dyVal >= 0 ? '+' : '-';
+
+  // Coordinates display
+  tex('ap3-coords',
+    `P = (${px.toFixed(3)},\\;${py.toFixed(3)}), \\quad Q = (${qx.toFixed(3)},\\;${qy.toFixed(3)}), \\quad dx = ${dxVal >= 0 ? '+' : ''}${dxVal.toFixed(3)},\\; dy = ${dyVal >= 0 ? '+' : ''}${dyVal.toFixed(3)}`);
+
+  tex('ap3-derive1',
+    `P\\text{가 원 위: } x^2 + y^2 = ${(px*px+py*py).toFixed(3)} = 1 \\quad\\checkmark`);
+  tex('ap3-derive2',
+    `Q\\text{가 원 위: } (x{+}dx)^2 + (y{+}dy)^2 = ${(qx*qx+qy*qy).toFixed(3)} = 1 \\quad\\checkmark`);
+  tex('ap3-derive3',
+    `\\text{빼면: } 2x\\,dx + 2y\\,dy + dx^2 + dy^2 = 0 \\;\\;\\Rightarrow\\;\\; x\\,dx + y\\,dy = ${(xdxVal + ydyVal).toFixed(4)} \\approx 0 \\quad (\\text{고차항 } dx^2+dy^2 = ${(dxVal*dxVal+dyVal*dyVal).toFixed(4)})`);
+
+  // Draw
+  const canvas = document.getElementById('canvasCircleDiag');
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = canvas.clientWidth;
+  const pad = { top: 30, right: 30, bottom: 30, left: 30 };
+
+  const R = 1.4; // range
+  const gW = cssW - pad.left - pad.right;
+  const pxPerUnit = gW / (2 * R);
+  const gH = gW; // square
+  const cssH = gH + pad.top + pad.bottom;
+
+  canvas.style.height = cssH + 'px';
+  canvas.width = cssW * dpr;
+  canvas.height = cssH * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  function toX(v) { return pad.left + (v + R) / (2 * R) * gW; }
+  function toY(v) { return pad.top + (R - v) / (2 * R) * gH; }
+
+  // Background
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, cssW, cssH);
+
+  // Grid
+  ctx.strokeStyle = '#EDEBE6';
+  ctx.lineWidth = 0.8;
+  for (let v = -1; v <= 1; v += 0.5) {
+    ctx.beginPath(); ctx.moveTo(toX(v), pad.top); ctx.lineTo(toX(v), pad.top + gH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(pad.left, toY(v)); ctx.lineTo(pad.left + gW, toY(v)); ctx.stroke();
+  }
+
+  // Axes
+  ctx.strokeStyle = '#B0ADA4';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(pad.left, toY(0)); ctx.lineTo(pad.left + gW, toY(0)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(toX(0), pad.top); ctx.lineTo(toX(0), pad.top + gH); ctx.stroke();
+
+  ctx.fillStyle = '#8A8780';
+  ctx.font = '11px JetBrains Mono, monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('x', pad.left + gW - 5, toY(0) - 8);
+  ctx.fillText('y', toX(0) + 12, pad.top + 12);
+
+  // Unit circle
+  ctx.strokeStyle = '#D0CDC4';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let i = 0; i <= 360; i++) {
+    const a = i * Math.PI / 180;
+    const cx = toX(Math.cos(a)), cy = toY(Math.sin(a));
+    if (i === 0) ctx.moveTo(cx, cy);
+    else ctx.lineTo(cx, cy);
+  }
+  ctx.stroke();
+
+  // Label circle
+  ctx.fillStyle = '#B0ADA4';
+  ctx.font = '11px Noto Sans KR, sans-serif';
+  ctx.fillText('x² + y² = 1', toX(0.75), toY(0.85));
+
+  // Point P
+  const PPx = toX(px), PPy = toY(py);
+  ctx.fillStyle = '#B44D2D';
+  ctx.beginPath(); ctx.arc(PPx, PPy, 6, 0, Math.PI * 2); ctx.fill();
+  ctx.font = 'bold 13px JetBrains Mono, monospace';
+  ctx.fillStyle = '#B44D2D';
+  const pLabelOffX = px > 0 ? 10 : -30;
+  const pLabelOffY = py > 0 ? -10 : 18;
+  ctx.textAlign = px > 0 ? 'left' : 'right';
+  ctx.fillText('P(x, y)', PPx + pLabelOffX, PPy + pLabelOffY);
+
+  // Point Q
+  const QQx = toX(qx), QQy = toY(qy);
+  ctx.fillStyle = '#2D6B8A';
+  ctx.beginPath(); ctx.arc(QQx, QQy, 6, 0, Math.PI * 2); ctx.fill();
+  ctx.font = 'bold 13px JetBrains Mono, monospace';
+  ctx.fillStyle = '#2D6B8A';
+  const qLabelOffX = qx > px ? 10 : -10;
+  const qLabelOffY = qy > py ? 18 : -10;
+  ctx.textAlign = qx > px ? 'left' : 'right';
+  ctx.fillText('Q(x+dx, y+dy)', QQx + qLabelOffX, QQy + qLabelOffY);
+
+  // Right-angle triangle: P → M(px+dx, py) → Q(px+dx, py+dy)
+  const Mx = toX(qx), My = toY(py);
+
+  // Horizontal line P → M (dx)
+  ctx.strokeStyle = '#B44D2D';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([5, 3]);
+  ctx.beginPath(); ctx.moveTo(PPx, PPy); ctx.lineTo(Mx, My); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Vertical line M → Q (dy)
+  ctx.strokeStyle = '#2D6B8A';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([5, 3]);
+  ctx.beginPath(); ctx.moveTo(Mx, My); ctx.lineTo(QQx, QQy); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Right angle mark at M
+  const markSize = 8;
+  const dirX = PPx < Mx ? -1 : 1;
+  const dirY = My < QQy ? 1 : -1;
+  ctx.strokeStyle = '#6B6960';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(Mx + dirX * markSize, My);
+  ctx.lineTo(Mx + dirX * markSize, My + dirY * markSize);
+  ctx.lineTo(Mx, My + dirY * markSize);
+  ctx.stroke();
+
+  // dx label
+  ctx.fillStyle = '#B44D2D';
+  ctx.font = 'bold 12px JetBrains Mono, monospace';
+  ctx.textAlign = 'center';
+  const dxLabelY = py > 0 ? My + 16 : My - 8;
+  ctx.fillText('dx', (PPx + Mx) / 2, dxLabelY);
+
+  // dy label
+  ctx.fillStyle = '#2D6B8A';
+  ctx.textAlign = qx > px ? 'left' : 'right';
+  const dyLabelX = qx > px ? Mx + 10 : Mx - 10;
+  ctx.fillText('dy', dyLabelX, (My + QQy) / 2 + 4);
+
+  // Direct line P → Q
+  ctx.strokeStyle = '#7B5EA7';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(PPx, PPy); ctx.lineTo(QQx, QQy); ctx.stroke();
+
+  // Sign indicators
+  ctx.font = '11px Noto Sans KR, sans-serif';
+  ctx.fillStyle = '#6B6960';
+  ctx.textAlign = 'center';
+  const signInfo = `dx ${dxVal >= 0 ? '> 0' : '< 0'},  dy ${dyVal >= 0 ? '> 0' : '< 0'}`;
+  ctx.fillText(signInfo, toX(0), pad.top + gH + 18);
+}
+
+window.addEventListener('DOMContentLoaded', init);
+window.addEventListener('resize', () => { render1(); render2(); render3(); renderCircleDiag(); });
+</script>
+</body>
+</html>
